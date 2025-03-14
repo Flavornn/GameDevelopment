@@ -87,10 +87,10 @@ public class Player : MonoBehaviourPunCallbacks
             photonView.RPC("FlipFalse", RpcTarget.All);
         }
 
-        if(Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            Shoot();
-        }
+        //if(Input.GetKeyDown(KeyCode.Mouse0))
+        //{
+        //    Shoot();
+        //}
     }
 
     [PunRPC]

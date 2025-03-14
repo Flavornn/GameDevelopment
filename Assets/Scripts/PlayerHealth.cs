@@ -18,10 +18,10 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        if(photonView.IsMine)
-        {
-            GameManager.Instance.LocalPlayer = this.gameObject;
-        }
+        //if(photonView.IsMine)
+        //{
+            //GameManager.Instance.LocalPlayer = this.gameObject;
+        //}
     }
 
     [PunRPC] public void ReduceHealth(float amount)
