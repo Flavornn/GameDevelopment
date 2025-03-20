@@ -17,7 +17,7 @@ public class Bullet : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        //StartCoroutine("DestroyByTime");
+        StartCoroutine("DestroyByTime");
     }
 
     IEnumerator DestroyByTime()
@@ -34,6 +34,7 @@ public class Bullet : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        // aiming bullet from firepoint to mouse position
         mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         rb = GetComponent<Rigidbody2D>();
         mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
@@ -74,6 +75,11 @@ public class Bullet : MonoBehaviourPunCallbacks
             if(target.tag == "Player")
             {
                 target.RPC("ReduceHealth", RpcTarget.All, BulletDamage);
+            }
+
+            if(target.tag == "Ground")
+            {
+                this.GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All);
             }
 
             this.GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All);

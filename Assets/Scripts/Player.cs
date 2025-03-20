@@ -28,7 +28,7 @@ public class Player : MonoBehaviourPunCallbacks
     {
         if(photonView.IsMine)
         {
-            PlayerCamera.SetActive(true);
+            //PlayerCamera.SetActive(true);
             PlayerNameText.text = PhotonNetwork.LocalPlayer.NickName;
         }
         else
