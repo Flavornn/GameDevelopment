@@ -510,7 +510,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0edf75730dbc42445afd0ebcd63b3db3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HealthAmount: 100
+  playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
   FillImage: {fileID: 8436187448023187296}
   rb: {fileID: 8247838037740025147}
   bc: {fileID: 6041692237267312820}
@@ -529,13 +529,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7f6dab14966a864b83bea93d6ba991f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  jumpForce: 7
   moveInput: 0
   groundCheck: {fileID: 5806467663841291116}
   groundLayer:
     serializedVersion: 2
     m_Bits: 256
+  playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
   PhotonView: {fileID: 5620626765357561767}
   PlayerNameText: {fileID: 6500706691935208100}
   PlayerCamera: {fileID: 3281368028406877455}
@@ -543,7 +542,7 @@ MonoBehaviour:
   sr: {fileID: 6558259050748901196}
   isGrounded: 0
   BulletObject: {fileID: 307059085973263709, guid: cc1096f86c7d5834497fa89673b0eab8, type: 3}
-  FirePoint: {fileID: 0}
+  FirePoint: {fileID: 5749303839273102991}
   DisableInput: 0
 --- !u!114 &5620626765357561767
 MonoBehaviour:
@@ -801,10 +800,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f102a1b473355e44295bb5be87fa8844, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bullet: {fileID: 307059085973263709, guid: cc1096f86c7d5834497fa89673b0eab8, type: 3}
+  bulletPrefab: {fileID: 307059085973263709, guid: cc1096f86c7d5834497fa89673b0eab8, type: 3}
   firePoint: {fileID: 5749303839273102991}
-  canFire: 1
-  timeBetweenShots: 0.3
+  shootingStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
 --- !u!1 &8745128513360418748
 GameObject:
   m_ObjectHideFlags: 0

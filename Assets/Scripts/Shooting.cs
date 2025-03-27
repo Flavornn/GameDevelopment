@@ -1,42 +1,77 @@
 using UnityEngine;
-public class Shooting : MonoBehaviour
+using Photon.Pun;
+
+public class Shooting : MonoBehaviourPun
 {
-    public GameObject bullet;
+    [Header("References")]
+    public GameObject bulletPrefab;
     public Transform firePoint;
+    public Stats shootingStats;
+
+    [Header("Local Instance Variables")]
     private Camera mainCam;
     private Vector3 mousePos;
-    public bool canFire;
+    private bool canFire = true;
     private float timer;
-    public float timeBetweenShots;
+    private float timeBetweenShots; // Local instance of cooldown time
 
     private void Start()
     {
         mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        CalculateTimeBetweenShots(); // Initialize local instance value
     }
-    void Update()
+
+    private void CalculateTimeBetweenShots()
     {
-        // Making firepoint spin around player
+        // Convert fire rate (shots per second) to time between shots (seconds)
+        timeBetweenShots = 1f / shootingStats._fireRate;
+    }
+
+    private void Update()
+    {
+        if (!photonView.IsMine) return;
+
+        HandleAiming();
+        HandleFiring();
+    }
+
+    private void HandleAiming()
+    {
         mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         Vector3 rotation = mousePos - firePoint.position;
         float rotZ = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, rotZ);
+        transform.rotation = Quaternion.Euler(0, 0, rotZ);
+    }
 
-        if(!canFire)
+    private void HandleFiring()
+    {
+        // Handle cooldown
+        if (!canFire)
         {
             timer += Time.deltaTime;
             if (timer >= timeBetweenShots)
             {
                 canFire = true;
-                timer = 0;
-
+                timer = 0f;
             }
         }
 
+        // Handle firing input
         if (Input.GetButtonDown("Fire1") && canFire)
         {
-            canFire = false;
-            Instantiate(bullet, firePoint.position, Quaternion.identity);
+            Fire();
         }
+    }
 
+    private void Fire()
+    {
+        canFire = false;
+        PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
+    }
+
+    // Call this if stats change during gameplay
+    public void RefreshShootingStats()
+    {
+        CalculateTimeBetweenShots();
     }
 }

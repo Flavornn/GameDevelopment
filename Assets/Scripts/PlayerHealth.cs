@@ -6,10 +6,10 @@ using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviourPunCallbacks
 {
-    public float HealthAmount;
+    public Stats playerStats; // Reference to Stats ScriptableObject
+    private float currentHealth; // Local health value for each player instance
 
     public Image FillImage;
-
     public Rigidbody2D rb;
     public BoxCollider2D bc;
     public SpriteRenderer sr;
@@ -18,21 +18,20 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        //if(photonView.IsMine)
-        //{
-            //GameManager.Instance.LocalPlayer = this.gameObject;
-        //}
+        // Initialize local health with the max health from Stats
+        currentHealth = playerStats._health;
+        UpdateHealthUI();
     }
 
-    [PunRPC] public void ReduceHealth(float amount)
+    [PunRPC]
+    public void ReduceHealth(float amount)
     {
         ModifyHealth(amount);
     }
 
     private void CheckHealth()
     {
-        FillImage.fillAmount = HealthAmount / 100f;
-        if(photonView.IsMine && HealthAmount <= 0 )
+        if (photonView.IsMine && currentHealth <= 0)
         {
             GameManager.Instance.EnableRespawn();
             plMove.DisableInput = true;
@@ -61,23 +60,23 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         bc.enabled = true;
         sr.enabled = true;
         PlayerCanvas.SetActive(true);
-        FillImage.fillAmount = 1f;
-        HealthAmount = 100f;
+        currentHealth = playerStats._health; // Reset to max health from Stats
+        UpdateHealthUI();
     }
 
     private void ModifyHealth(float amount)
     {
-        if(photonView.IsMine)
+        if (photonView.IsMine)
         {
-            HealthAmount -= amount;
-            FillImage.fillAmount -= amount;
+            currentHealth -= amount;
+            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health); // Ensure health doesn't go below 0 or above max
+            UpdateHealthUI();
+            CheckHealth();
         }
-        else
-        {
-            HealthAmount -= amount; 
-            FillImage.fillAmount -= amount;
-        }
+    }
 
-        CheckHealth();  
+    private void UpdateHealthUI()
+    {
+        FillImage.fillAmount = currentHealth / playerStats._health;
     }
 }

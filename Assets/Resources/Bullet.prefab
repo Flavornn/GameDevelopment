@@ -146,9 +146,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MoveDir: 0
-  MoveSpeed: 10
-  DestroyTime: 2
-  BulletDamage: 20
+  bulletStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
   force: 0
 --- !u!114 &-4017045678960490059
 MonoBehaviour:

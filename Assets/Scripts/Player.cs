@@ -6,11 +6,11 @@ using Photon.Pun;
 
 public class Player : MonoBehaviourPunCallbacks
 {
-    public float moveSpeed;
-    public float jumpForce;
+
     public float moveInput;
     public Transform groundCheck;
     public LayerMask groundLayer;
+    public Stats playerStats; // Add reference to Stats
 
     public PhotonView PhotonView;
     public Text PlayerNameText;
@@ -21,14 +21,12 @@ public class Player : MonoBehaviourPunCallbacks
 
     public GameObject BulletObject;
     public Transform FirePoint;
-
     public bool DisableInput = false;
 
     private void Awake()
     {
-        if(photonView.IsMine)
+        if (photonView.IsMine)
         {
-            //PlayerCamera.SetActive(true);
             PlayerNameText.text = PhotonNetwork.LocalPlayer.NickName;
         }
         else
@@ -38,28 +36,22 @@ public class Player : MonoBehaviourPunCallbacks
         }
     }
 
-    void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-    }
-
     void Update()
     {
-        if(photonView.IsMine && !DisableInput)
+        if (photonView.IsMine && !DisableInput)
         {
             CheckInput();
         }
-
     }
 
     private void Shoot()
     {
-        if(sr.flipX == false)
+        if (sr.flipX == false)
         {
             GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
         }
 
-        if(sr.flipX == true)
+        if (sr.flipX == true)
         {
             GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
             obj.GetComponent<PhotonView>().RPC("ChangeDir_Left", RpcTarget.All);
@@ -69,12 +61,12 @@ public class Player : MonoBehaviourPunCallbacks
     private void CheckInput()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
-        var move = new Vector3(Input.GetAxisRaw("Horizontal"),0);
-        transform.position += move * moveSpeed * Time.deltaTime;
+        var move = new Vector3(Input.GetAxisRaw("Horizontal"), 0);
+        transform.position += move * playerStats._speed * Time.deltaTime; // Use stats for speed
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            rb.velocity = new Vector2(rb.velocity.x, playerStats._jumpHeight); // Use stats for jump
         }
 
         if (Input.GetKeyDown(KeyCode.A))
@@ -86,11 +78,6 @@ public class Player : MonoBehaviourPunCallbacks
         {
             photonView.RPC("FlipFalse", RpcTarget.All);
         }
-
-        //if(Input.GetKeyDown(KeyCode.Mouse0))
-        //{
-        //    Shoot();
-        //}
     }
 
     [PunRPC]
