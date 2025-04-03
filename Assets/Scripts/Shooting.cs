@@ -11,19 +11,22 @@ public class Shooting : MonoBehaviourPun
     [Header("Local Instance Variables")]
     private Camera mainCam;
     private Vector3 mousePos;
-    private bool canFire = true;
-    private float timer;
-    private float timeBetweenShots; // Local instance of cooldown time
+    private float timeBetweenShots;
+    private int currentAmmo;
+    private bool isReloading = false;
+    private float reloadTimer;
+    private float lastShotTime;
 
     private void Start()
     {
         mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        CalculateTimeBetweenShots(); // Initialize local instance value
+        CalculateTimeBetweenShots();
+        currentAmmo = shootingStats._maxAmmo;
+        lastShotTime = -timeBetweenShots; 
     }
 
     private void CalculateTimeBetweenShots()
     {
-        // Convert fire rate (shots per second) to time between shots (seconds)
         timeBetweenShots = 1f / shootingStats._fireRate;
     }
 
@@ -33,6 +36,7 @@ public class Shooting : MonoBehaviourPun
 
         HandleAiming();
         HandleFiring();
+        HandleReloading();
     }
 
     private void HandleAiming()
@@ -45,33 +49,47 @@ public class Shooting : MonoBehaviourPun
 
     private void HandleFiring()
     {
-        // Handle cooldown
-        if (!canFire)
-        {
-            timer += Time.deltaTime;
-            if (timer >= timeBetweenShots)
-            {
-                canFire = true;
-                timer = 0f;
-            }
-        }
+        if (isReloading) return;
 
-        // Handle firing input
-        if (Input.GetButtonDown("Fire1") && canFire)
+        // Automatic fire while holding mouse button
+        if (Input.GetButton("Fire1") && currentAmmo > 0)
         {
-            Fire();
+            if (Time.time - lastShotTime >= timeBetweenShots)
+            {
+                Fire();
+                lastShotTime = Time.time;
+            }
         }
     }
 
     private void Fire()
     {
-        canFire = false;
         PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
+        currentAmmo--;
+
+        // Start reload when empty
+        if (currentAmmo <= 0)
+        {
+            isReloading = true;
+            reloadTimer = 0f;
+        }
     }
 
-    // Call this if stats change during gameplay
+    private void HandleReloading()
+    {
+        if (!isReloading) return;
+
+        reloadTimer += Time.deltaTime;
+        if (reloadTimer >= shootingStats._reloadTime)
+        {
+            currentAmmo = shootingStats._maxAmmo;
+            isReloading = false;
+        }
+    }
+
     public void RefreshShootingStats()
     {
         CalculateTimeBetweenShots();
+        currentAmmo = Mathf.Min(currentAmmo, shootingStats._maxAmmo);
     }
 }

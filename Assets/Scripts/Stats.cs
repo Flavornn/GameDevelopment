@@ -14,6 +14,7 @@ public class Stats : ScriptableObject
     [Header("Misc Stats")]
     public float _fireRate = 1f;
     public float _reloadTime = 2f;
+    public int _maxAmmo = 5;
 
     [Header("Player Stats")]
     public int _health = 100;
