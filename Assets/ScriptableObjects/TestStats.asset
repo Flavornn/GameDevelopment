@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ead5bcc98ff1964ea5d22ea8bd513c6, type: 3}
-  m_Name: Stats
+  m_Name: TestStats
   m_EditorClassIdentifier: 
   _bulletDamage: 10
-  _bulletSpeed: 20
-  _bulletSize: 0.3
+  _bulletSpeed: 5
+  _bulletSize: 1
   _bounceCount: 0
-  _fireRate: 10
-  _reloadTime: 5
-  _maxAmmo: 10
+  _fireRate: 1
+  _reloadTime: 2
+  _maxAmmo: 5
   _health: 100
-  _speed: 10
-  _jumpHeight: 10
+  _speed: 5
+  _jumpHeight: 2
