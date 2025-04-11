@@ -61,12 +61,12 @@ public class Player : MonoBehaviourPunCallbacks
     private void CheckInput()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
-        var move = new Vector3(Input.GetAxisRaw("Horizontal"), 0);
-        transform.position += move * playerStats._speed * Time.deltaTime; // Use stats for speed
+        float moveInput = Input.GetAxisRaw("Horizontal");
+        rb.velocity = new Vector2(moveInput * playerStats._speed, rb.velocity.y);
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            rb.velocity = new Vector2(rb.velocity.x, playerStats._jumpHeight); // Use stats for jump
+            rb.velocity = new Vector2(rb.velocity.x, playerStats._jumpHeight);
         }
 
         if (Input.GetKeyDown(KeyCode.A))

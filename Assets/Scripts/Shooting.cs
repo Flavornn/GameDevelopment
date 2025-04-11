@@ -64,10 +64,12 @@ public class Shooting : MonoBehaviourPun
 
     private void Fire()
     {
-        PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation);
+        Vector3 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 direction = (mousePos - firePoint.position).normalized;
+        object[] bulletData = new object[] { direction };
+        PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation, 0, bulletData);
         currentAmmo--;
 
-        // Start reload when empty
         if (currentAmmo <= 0)
         {
             isReloading = true;

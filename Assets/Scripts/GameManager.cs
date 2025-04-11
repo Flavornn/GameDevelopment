@@ -47,6 +47,11 @@ public class GameManager : MonoBehaviour
 
     private void StartRespawn()
     {
+        if (LocalPlayer == null)
+        {
+            Debug.LogError("LocalPlayer is not assigned!");
+            return;
+        }
         TimerAmount -= Time.deltaTime;
         RespawnTimerText.text = "Respawning in " + TimerAmount.ToString("F0");
 
@@ -84,7 +89,17 @@ public class GameManager : MonoBehaviour
     public void SpawnPlayer()
     {
         float randomValue = Random.Range(-2.5f, 2.5f);
-        PhotonNetwork.Instantiate(PlayerPrefab.name, spawnPositions, Quaternion.identity, 0);
+        GameObject player = PhotonNetwork.Instantiate(
+        PlayerPrefab.name,
+        spawnPositions,
+        Quaternion.identity,
+        0
+    );
+        if (player.GetComponent<PhotonView>().IsMine)
+        {
+            LocalPlayer = player;
+        }
+
         GameCanvas.SetActive(false); 
     }
 

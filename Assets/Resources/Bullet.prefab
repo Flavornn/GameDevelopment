@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2068714632087678128}
   - component: {fileID: -4017045678960490059}
   - component: {fileID: 7768008255631222596}
+  - component: {fileID: 3786293813958732488}
   m_Layer: 0
   m_Name: Bullet
   m_TagString: Bullet
@@ -166,7 +167,8 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   observableSearch: 2
-  ObservedComponents: []
+  ObservedComponents:
+  - {fileID: 3786293813958732488}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -197,3 +199,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
+--- !u!114 &3786293813958732488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307059085973263709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 0
+  m_TeleportIfDistanceGreaterThan: 3

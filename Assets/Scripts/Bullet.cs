@@ -34,14 +34,18 @@ public class Bullet : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         rb = GetComponent<Rigidbody2D>();
-        mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
-        Vector3 direction = mousePos - transform.position;
-        Vector3 rotation = transform.position - mousePos;
-        rb.velocity = new Vector2(direction.x, direction.y).normalized * force;
-        float rot = Mathf.Atan2(rotation.y, rotation.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0f, 0f, rot + 180);
+
+        if (photonView.InstantiationData != null && photonView.InstantiationData.Length > 0)
+        {
+            Vector2 direction = (Vector2)photonView.InstantiationData[0];
+            rb.velocity = direction * force; // velocity from data
+            float rot = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0f, 0f, rot);
+        }
+
+        transform.localScale = new Vector3(bulletStats._bulletSize, bulletStats._bulletSize, 1f);
+        StartCoroutine("DestroyByTime");
     }
 
     [PunRPC]
@@ -73,7 +77,7 @@ public class Bullet : MonoBehaviourPunCallbacks
         {
             if (target.tag == "Player")
             {
-                target.RPC("ReduceHealth", RpcTarget.All, bulletStats._bulletDamage); // Use stats for damage
+                target.RPC("ReduceHealth", RpcTarget.All, (int)bulletStats._bulletDamage);
             }
 
             if (target.tag == "Ground")

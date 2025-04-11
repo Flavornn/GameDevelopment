@@ -24,7 +24,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void ReduceHealth(float amount)
+    public void ReduceHealth(int amount)
     {
         ModifyHealth(amount);
     }
@@ -51,6 +51,11 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         bc.enabled = false;
         sr.enabled = false;
         PlayerCanvas.SetActive(false);
+
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.EnableRespawn();
+        }
     }
 
     [PunRPC]
@@ -64,14 +69,16 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         UpdateHealthUI();
     }
 
-    private void ModifyHealth(float amount)
+    private void ModifyHealth(int amount) // Changed from float to int
     {
-        if (photonView.IsMine)
-        {
             currentHealth -= amount;
-            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health); // Ensure health doesn't go below 0 or above max
+            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
             UpdateHealthUI();
             CheckHealth();
+
+        if (photonView.IsMine)
+        {
+            plMove.DisableInput = false;
         }
     }
 
