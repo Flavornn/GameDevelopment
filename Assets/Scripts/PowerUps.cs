@@ -1,281 +1,316 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using System;
 
-public class PowerUpManager : MonoBehaviour
+[CreateAssetMenu(fileName = "PowerUps", menuName = "ScriptableObjects/PowerUps")]
+public class PowerUps : ScriptableObject
 {
-    [System.Serializable]
-    public struct PowerUpEntry
+    public enum PowerUpType
     {
-        public string powerUpName;
-        public bool isActive;
-        [HideInInspector] public bool wasActive; // For state tracking
+        RapidFire,
+        PrecisionBurst,
+        HeavyRounds,
+        ArmorPiercing,
+        ExtendedMagazine,
+        SpeedLoader,
+        NitroBoost,
+        ReinforcedPlating,
+        AgileShooter,
+        HighVelocity,
+        HollowPoints,
+        MicroRounds,
+        VampiricRounds,
+        AdrenalineRush,
+        SniperConfiguration,
+        ShotgunSpread,
+        TankMode,
+        GlassCannon,
+        BulletHell,
+        GuerrillaTactics
     }
 
-    [Header("Core Configuration")]
-    public Stats playerStats; // Assign this ONCE in Inspector
+    [Header("Active Power-Ups")]
+    public List<PowerUpType> activePowerUps = new List<PowerUpType>();
 
-    [Header("Power-Up List")]
-    public List<PowerUpEntry> powerUps = new List<PowerUpEntry>();
-
-    private void OnValidate()
+    private Dictionary<PowerUpType, Action<Stats>> powerUpEffects = new Dictionary<PowerUpType, Action<Stats>>
     {
-        if (playerStats == null) return;
-        ApplyPowerUps();
-    }
+        // Fire Rate Modifiers
+        { PowerUpType.RapidFire, (stats) => {
+            stats._fireRate *= 1.5f;
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 0.8f);
+        }},
+        { PowerUpType.PrecisionBurst, (stats) => {
+            stats._fireRate *= 2f;
+            stats._reloadTime *= 1.5f;
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 0.7f);
+        }},
 
-    private void ApplyPowerUps()
+        // Damage Modifiers
+        { PowerUpType.HeavyRounds, (stats) => {
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 1.4f);
+            stats._bulletSpeed *= 0.75f;
+        }},
+        { PowerUpType.ArmorPiercing, (stats) => {
+            stats._bulletDamage += 5;
+            stats._fireRate *= 0.8f;
+        }},
+
+        // Ammo/Reload Modifiers
+        { PowerUpType.ExtendedMagazine, (stats) => {
+            stats._maxAmmo = Mathf.RoundToInt(stats._maxAmmo * 1.5f);
+            stats._reloadTime *= 1.25f;
+        }},
+        { PowerUpType.SpeedLoader, (stats) => {
+            stats._reloadTime *= 0.6f;
+            stats._maxAmmo = Mathf.RoundToInt(stats._maxAmmo * 0.8f);
+        }},
+
+        // Movement Modifiers
+        { PowerUpType.NitroBoost, (stats) => {
+            stats._speed *= 1.3f;
+            stats._health = Mathf.RoundToInt(stats._health * 0.85f);
+        }},
+        { PowerUpType.ReinforcedPlating, (stats) => {
+            stats._health += 50;
+            stats._speed *= 0.8f;
+        }},
+        { PowerUpType.AgileShooter, (stats) => {
+            stats._speed *= 1.2f;
+            stats._fireRate *= 1.2f;
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 0.9f);
+        }},
+
+        // Bullet Physics Modifiers
+        { PowerUpType.HighVelocity, (stats) => {
+            stats._bulletSpeed *= 1.4f;
+            stats._bulletSize *= 0.8f;
+        }},
+        { PowerUpType.HollowPoints, (stats) => {
+            stats._bulletDamage += 3;
+            stats._maxAmmo -= 2;
+        }},
+        { PowerUpType.MicroRounds, (stats) => {
+            stats._bulletSize *= 0.7f;
+            stats._maxAmmo += 3;
+            stats._bulletDamage -= 2;
+        }},
+
+        // Special Effects
+        { PowerUpType.VampiricRounds, (stats) => {
+            stats._health += 20;
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 0.85f);
+        }},
+        { PowerUpType.AdrenalineRush, (stats) => {
+            stats._speed *= 1.25f;
+            stats._jumpHeight *= 1.3f;
+            stats._health = Mathf.RoundToInt(stats._health * 0.9f);
+        }},
+        { PowerUpType.SniperConfiguration, (stats) => {
+            stats._bulletSize *= 1.5f;
+            stats._bulletSpeed *= 1.3f;
+            stats._fireRate *= 0.6f;
+        }},
+        { PowerUpType.ShotgunSpread, (stats) => {
+            stats._bulletDamage += 4;
+            stats._maxAmmo = Mathf.RoundToInt(stats._maxAmmo * 0.6f);
+        }},
+        { PowerUpType.TankMode, (stats) => {
+            stats._health += 75;
+            stats._speed *= 0.7f;
+            stats._reloadTime *= 1.4f;
+        }},
+        { PowerUpType.GlassCannon, (stats) => {
+            stats._bulletDamage *= 2;
+            stats._health = Mathf.RoundToInt(stats._health * 0.4f);
+        }},
+        { PowerUpType.BulletHell, (stats) => {
+            stats._fireRate *= 2f;
+            stats._maxAmmo += 5;
+            stats._bulletDamage = Mathf.RoundToInt(stats._bulletDamage * 0.6f);
+        }},
+        { PowerUpType.GuerrillaTactics, (stats) => {
+            stats._reloadTime *= 0.5f;
+            stats._maxAmmo = Mathf.RoundToInt(stats._maxAmmo * 0.7f);
+            stats._speed *= 1.15f;
+        }}
+    };
+
+    public void TogglePowerUp(PowerUpType type, Stats targetStats)
     {
-        for (int i = 0; i < powerUps.Count; i++)
+        if (activePowerUps.Contains(type))
         {
-            var entry = powerUps[i];
-
-            if (entry.isActive && !entry.wasActive)
-            {
-                ApplyPowerUp(entry.powerUpName);
-                entry.wasActive = true;
-            }
-            else if (!entry.isActive && entry.wasActive)
-            {
-                RevertPowerUp(entry.powerUpName);
-                entry.wasActive = false;
-            }
-
-            powerUps[i] = entry;
+            RevertPowerUp(type, targetStats);
+            activePowerUps.Remove(type);
+        }
+        else
+        {
+            ApplyPowerUp(type, targetStats);
+            activePowerUps.Add(type);
         }
     }
 
-    private void ApplyPowerUp(string powerUpName)
+    public string GetPowerUpDescription(PowerUpType type)
     {
-        switch (powerUpName)
+        switch (type)
         {
-           
-            case "Rapid Fire":
-                playerStats._fireRate *= 1.5f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 0.8f);
+            case PowerUpType.RapidFire: return "Fire Rate +50%\nBullet Damage -20%";
+            case PowerUpType.PrecisionBurst: return "Fire Rate +100%\nReload Time +50%\nBullet Damage -30%";
+            case PowerUpType.HeavyRounds: return "Bullet Damage +40%\nBullet Speed -25%";
+            case PowerUpType.ArmorPiercing: return "Bullet Damage +5\nFire Rate -20%";
+            case PowerUpType.ExtendedMagazine: return "Max Ammo +50%\nReload Time +25%";
+            case PowerUpType.SpeedLoader: return "Reload Time -40%\nMax Ammo -20%";
+            case PowerUpType.NitroBoost: return "Speed +30%\nHealth -15%";
+            case PowerUpType.ReinforcedPlating: return "Health +50\nSpeed -20%";
+            case PowerUpType.AgileShooter: return "Speed +20%\nFire Rate +20%\nBullet Damage -10%";
+            case PowerUpType.HighVelocity: return "Bullet Speed +40%\nBullet Size -20%";
+            case PowerUpType.HollowPoints: return "Bullet Damage +3\nMax Ammo -2";
+            case PowerUpType.MicroRounds: return "Bullet Size -30%\nMax Ammo +3\nBullet Damage -2";
+            case PowerUpType.VampiricRounds: return "Health +20\nBullet Damage -15%";
+            case PowerUpType.AdrenalineRush: return "Speed +25%\nJump Height +30%\nHealth -10%";
+            case PowerUpType.SniperConfiguration: return "Bullet Size +50%\nBullet Speed +30%\nFire Rate -40%";
+            case PowerUpType.ShotgunSpread: return "Bullet Damage +4\nMax Ammo -40%";
+            case PowerUpType.TankMode: return "Health +75\nSpeed -30%\nReload Time +40%";
+            case PowerUpType.GlassCannon: return "Bullet Damage +100%\nHealth -60%";
+            case PowerUpType.BulletHell: return "Fire Rate +100%\nMax Ammo +5\nBullet Damage -40%";
+            case PowerUpType.GuerrillaTactics: return "Reload Time -50%\nMax Ammo -30%\nSpeed +15%";
+            default: return "Unknown Power-Up";
+        }
+    }
+
+    private void ApplyPowerUp(PowerUpType type, Stats targetStats)
+    {
+        if (powerUpEffects.TryGetValue(type, out Action<Stats> effect))
+        {
+            effect.Invoke(targetStats);
+            Debug.Log($"Applied: {type}");
+        }
+    }
+
+    private void RevertPowerUp(PowerUpType type, Stats targetStats)
+    {
+        switch (type)
+        {
+            case PowerUpType.RapidFire:
+                targetStats._fireRate /= 1.5f;
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 0.8f);
                 break;
 
-            case "Precision Burst":
-                playerStats._fireRate *= 2f;
-                playerStats._reloadTime *= 1.5f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 0.7f);
+            case PowerUpType.PrecisionBurst:
+                targetStats._fireRate /= 2f;
+                targetStats._reloadTime /= 1.5f;
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 0.7f);
                 break;
 
-            
-            case "Heavy Rounds":
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 1.4f);
-                playerStats._bulletSpeed *= 0.75f;
+            case PowerUpType.HeavyRounds:
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 1.4f);
+                targetStats._bulletSpeed /= 0.75f;
                 break;
 
-            case "Armor Piercing":
-                playerStats._bulletDamage += 5;
-                playerStats._fireRate *= 0.8f;
+            case PowerUpType.ArmorPiercing:
+                targetStats._bulletDamage -= 5;
+                targetStats._fireRate /= 0.8f;
                 break;
 
-            
-            case "Extended Magazine":
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo * 1.5f);
-                playerStats._reloadTime *= 1.25f;
+            case PowerUpType.ExtendedMagazine:
+                targetStats._maxAmmo = Mathf.RoundToInt(targetStats._maxAmmo / 1.5f);
+                targetStats._reloadTime /= 1.25f;
                 break;
 
-            case "Speed Loader":
-                playerStats._reloadTime *= 0.6f;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo * 0.8f);
+            case PowerUpType.SpeedLoader:
+                targetStats._reloadTime /= 0.6f;
+                targetStats._maxAmmo = Mathf.RoundToInt(targetStats._maxAmmo / 0.8f);
                 break;
 
-            
-            case "Nitro Boost":
-                playerStats._speed *= 1.3f;
-                playerStats._health = Mathf.RoundToInt(playerStats._health * 0.85f);
+            case PowerUpType.NitroBoost:
+                targetStats._speed /= 1.3f;
+                targetStats._health = Mathf.RoundToInt(targetStats._health / 0.85f);
                 break;
 
-            case "Reinforced Plating":
-                playerStats._health += 50;
-                playerStats._speed *= 0.8f;
+            case PowerUpType.ReinforcedPlating:
+                targetStats._health -= 50;
+                targetStats._speed /= 0.8f;
                 break;
 
-            case "Agile Shooter":
-                playerStats._speed *= 1.2f;
-                playerStats._fireRate *= 1.2f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 0.9f);
+            case PowerUpType.AgileShooter:
+                targetStats._speed /= 1.2f;
+                targetStats._fireRate /= 1.2f;
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 0.9f);
                 break;
 
-            
-            case "High Velocity":
-                playerStats._bulletSpeed *= 1.4f;
-                playerStats._bulletSize *= 0.8f;
+            case PowerUpType.HighVelocity:
+                targetStats._bulletSpeed /= 1.4f;
+                targetStats._bulletSize /= 0.8f;
                 break;
 
-            case "Hollow Points":
-                playerStats._bulletDamage += 3;
-                playerStats._maxAmmo -= 2;
+            case PowerUpType.HollowPoints:
+                targetStats._bulletDamage -= 3;
+                targetStats._maxAmmo += 2;
                 break;
 
-            case "Micro Rounds":
-                playerStats._bulletSize *= 0.7f;
-                playerStats._maxAmmo += 3;
-                playerStats._bulletDamage -= 2;
+            case PowerUpType.MicroRounds:
+                targetStats._bulletSize /= 0.7f;
+                targetStats._maxAmmo -= 3;
+                targetStats._bulletDamage += 2;
                 break;
 
-            
-            case "Vampiric Rounds":
-                playerStats._health += 20;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 0.85f);
+            case PowerUpType.VampiricRounds:
+                targetStats._health -= 20;
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 0.85f);
                 break;
 
-            case "Adrenaline Rush":
-                playerStats._speed *= 1.25f;
-                playerStats._jumpHeight *= 1.3f;
-                playerStats._health = Mathf.RoundToInt(playerStats._health * 0.9f);
+            case PowerUpType.AdrenalineRush:
+                targetStats._speed /= 1.25f;
+                targetStats._jumpHeight /= 1.3f;
+                targetStats._health = Mathf.RoundToInt(targetStats._health / 0.9f);
                 break;
 
-            
-            case "Sniper Configuration":
-                playerStats._bulletSize *= 1.5f;
-                playerStats._bulletSpeed *= 1.3f;
-                playerStats._fireRate *= 0.6f;
+            case PowerUpType.SniperConfiguration:
+                targetStats._bulletSize /= 1.5f;
+                targetStats._bulletSpeed /= 1.3f;
+                targetStats._fireRate /= 0.6f;
                 break;
 
-            case "Shotgun Spread":
-                playerStats._bulletDamage += 4;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo * 0.6f);
+            case PowerUpType.ShotgunSpread:
+                targetStats._bulletDamage -= 4;
+                targetStats._maxAmmo = Mathf.RoundToInt(targetStats._maxAmmo / 0.6f);
                 break;
 
-            case "Tank Mode":
-                playerStats._health += 75;
-                playerStats._speed *= 0.7f;
-                playerStats._reloadTime *= 1.4f;
+            case PowerUpType.TankMode:
+                targetStats._health -= 75;
+                targetStats._speed /= 0.7f;
+                targetStats._reloadTime /= 1.4f;
                 break;
 
-            case "Glass Cannon":
-                playerStats._bulletDamage *= 2;
-                playerStats._health = Mathf.RoundToInt(playerStats._health * 0.4f);
+            case PowerUpType.GlassCannon:
+                targetStats._bulletDamage /= 2;
+                targetStats._health = Mathf.RoundToInt(targetStats._health / 0.4f);
                 break;
 
-            case "Bullet Hell":
-                playerStats._fireRate *= 2f;
-                playerStats._maxAmmo += 5;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage * 0.6f);
+            case PowerUpType.BulletHell:
+                targetStats._fireRate /= 2f;
+                targetStats._maxAmmo -= 5;
+                targetStats._bulletDamage = Mathf.RoundToInt(targetStats._bulletDamage / 0.6f);
                 break;
 
-            case "Guerrilla Tactics":
-                playerStats._reloadTime *= 0.5f;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo * 0.7f);
-                playerStats._speed *= 1.15f;
+            case PowerUpType.GuerrillaTactics:
+                targetStats._reloadTime /= 0.5f;
+                targetStats._maxAmmo = Mathf.RoundToInt(targetStats._maxAmmo / 0.7f);
+                targetStats._speed /= 1.15f;
+                break;
+
+            default:
+                Debug.LogWarning($"No reversal defined for: {type}");
                 break;
         }
     }
 
-    private void RevertPowerUp(string powerUpName)
+    public void ResetAllPowerUps(Stats targetStats)
     {
-        switch (powerUpName)
+        foreach (var powerUp in activePowerUps)
         {
-            case "Rapid Fire":
-                playerStats._fireRate /= 1.5f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 0.8f);
-                break;
-
-            case "Precision Burst":
-                playerStats._fireRate /= 2f;
-                playerStats._reloadTime /= 1.5f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 0.7f);
-                break;
-
-            case "Heavy Rounds":
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 1.4f);
-                playerStats._bulletSpeed /= 0.75f;
-                break;
-
-            case "Armor Piercing":
-                playerStats._bulletDamage -= 5;
-                playerStats._fireRate /= 0.8f;
-                break;
-
-            case "Extended Magazine":
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo / 1.5f);
-                playerStats._reloadTime /= 1.25f;
-                break;
-
-            case "Speed Loader":
-                playerStats._reloadTime /= 0.6f;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo / 0.8f);
-                break;
-
-            case "Nitro Boost":
-                playerStats._speed /= 1.3f;
-                playerStats._health = Mathf.RoundToInt(playerStats._health / 0.85f);
-                break;
-
-            case "Reinforced Plating":
-                playerStats._health -= 50;
-                playerStats._speed /= 0.8f;
-                break;
-
-            case "Agile Shooter":
-                playerStats._speed /= 1.2f;
-                playerStats._fireRate /= 1.2f;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 0.9f);
-                break;
-
-            case "High Velocity":
-                playerStats._bulletSpeed /= 1.4f;
-                playerStats._bulletSize /= 0.8f;
-                break;
-
-            case "Hollow Points":
-                playerStats._bulletDamage -= 3;
-                playerStats._maxAmmo += 2;
-                break;
-
-            case "Micro Rounds":
-                playerStats._bulletSize /= 0.7f;
-                playerStats._maxAmmo -= 3;
-                playerStats._bulletDamage += 2;
-                break;
-
-            case "Vampiric Rounds":
-                playerStats._health -= 20;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 0.85f);
-                break;
-
-            case "Adrenaline Rush":
-                playerStats._speed /= 1.25f;
-                playerStats._jumpHeight /= 1.3f;
-                playerStats._health = Mathf.RoundToInt(playerStats._health / 0.9f);
-                break;
-
-            case "Sniper Configuration":
-                playerStats._bulletSize /= 1.5f;
-                playerStats._bulletSpeed /= 1.3f;
-                playerStats._fireRate /= 0.6f;
-                break;
-
-            case "Shotgun Spread":
-                playerStats._bulletDamage -= 4;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo / 0.6f);
-                break;
-
-            case "Tank Mode":
-                playerStats._health -= 75;
-                playerStats._speed /= 0.7f;
-                playerStats._reloadTime /= 1.4f;
-                break;
-
-            case "Glass Cannon":
-                playerStats._bulletDamage /= 2;
-                playerStats._health = Mathf.RoundToInt(playerStats._health / 0.4f);
-                break;
-
-            case "Bullet Hell":
-                playerStats._fireRate /= 2f;
-                playerStats._maxAmmo -= 5;
-                playerStats._bulletDamage = Mathf.RoundToInt(playerStats._bulletDamage / 0.6f);
-                break;
-
-            case "Guerrilla Tactics":
-                playerStats._reloadTime /= 0.5f;
-                playerStats._maxAmmo = Mathf.RoundToInt(playerStats._maxAmmo / 0.7f);
-                playerStats._speed /= 1.15f;
-                break;
+            RevertPowerUp(powerUp, targetStats);
         }
+        activePowerUps.Clear();
     }
 }

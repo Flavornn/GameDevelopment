@@ -2,10 +2,8 @@ using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
-    public static GameManager Instance;
-
     public int roundNumber = 1;
     public Text roundText;
     public PlayerHealth player;
@@ -22,9 +20,25 @@ public class GameManager : MonoBehaviour
     private float TimerAmount = 5f;
     private bool RunRespawnTimer = false;
 
+    private static GameManager _instance;
+    public static GameManager Instance => _instance;
+
     private void Awake()
     {
-        Instance = this;
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        _instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Remove PhotonView if not needed
+        if (GetComponent<PhotonView>())
+        {
+            Destroy(GetComponent<PhotonView>());
+        }
         GameCanvas.SetActive(true);
     }
 
@@ -107,5 +121,10 @@ public class GameManager : MonoBehaviour
     {
         PhotonNetwork.LeaveRoom();
         PhotonNetwork.LoadLevel("Lobby");
+    }
+
+    public override void OnLeftRoom()
+    {
+        Destroy(gameObject);
     }
 }

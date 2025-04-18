@@ -10140,6 +10140,7 @@ GameObject:
   - component: {fileID: 1853872210}
   - component: {fileID: 1853872211}
   - component: {fileID: 1853872212}
+  - component: {fileID: 1853872213}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -10194,71 +10195,41 @@ MonoBehaviour:
   m_GameObject: {fileID: 1853872208}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 60bd5494bb2d6614d9a10cbe5fbaa509, type: 3}
+  m_Script: {fileID: 11500000, guid: 43cae358025478e4fb401e707ca7ca56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
-  powerUps:
-  - powerUpName: Rapid Fire
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Precision Burst
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Heavy Rounds
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Armor Piercing
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Extended Magazine
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Speed Loader
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Nitro Boost
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Reinforced Plating
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Agile Shooter
-    isActive: 0
-    wasActive: 0
-  - powerUpName: High Velocity
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Hollow Points
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Micro Rounds
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Vampiric Rounds
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Adrenaline Rush
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Sniper Configuration
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Shotgun Spread
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Tank Mode
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Glass Cannon
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Bullet Hell
-    isActive: 0
-    wasActive: 0
-  - powerUpName: Guerrilla Tactics
-    isActive: 0
-    wasActive: 0
+  gameSceneName: GameScene
+  menuSceneName: MainMenu
+  powerupScreen: PowerSelect
+  sceneTransitionDelay: 0.5
+  OnSceneTransitionStart:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSceneTransitionComplete:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1853872213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1853872208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 1
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &2056981077
 GameObject:
   m_ObjectHideFlags: 0
