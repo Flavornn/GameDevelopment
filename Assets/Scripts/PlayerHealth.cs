@@ -1,10 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 using UnityEngine.UI;
 
-public class PlayerHealth : MonoBehaviourPunCallbacks
+public class PlayerHealth : MonoBehaviour
 {
     public Stats playerStats; // Reference to Stats ScriptableObject
     private float currentHealth; // Local health value for each player instance
@@ -23,7 +22,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         UpdateHealthUI();
     }
 
-    [PunRPC]
+
     public void ReduceHealth(int amount)
     {
         ModifyHealth(amount);
@@ -31,12 +30,8 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void CheckHealth()
     {
-        if (photonView.IsMine && currentHealth <= 0)
-        {
             GameManager.Instance.EnableRespawn();
             plMove.DisableInput = true;
-            this.GetComponent<PhotonView>().RPC("Dead", RpcTarget.All);
-        }
     }
 
     public void EnableInput()
@@ -44,7 +39,6 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         plMove.DisableInput = false;
     }
 
-    [PunRPC]
     private void Dead()
     {
         rb.gravityScale = 0;
@@ -52,13 +46,11 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         sr.enabled = false;
         PlayerCanvas.SetActive(false);
 
-        if (photonView.IsMine)
-        {
-            GameManager.Instance.EnableRespawn();
-        }
+
+        GameManager.Instance.EnableRespawn();
+
     }
 
-    [PunRPC]
     private void Respawn()
     {
         rb.gravityScale = 1;
@@ -76,10 +68,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
             UpdateHealthUI();
             CheckHealth();
 
-        if (photonView.IsMine)
-        {
             plMove.DisableInput = false;
-        }
     }
 
     private void UpdateHealthUI()

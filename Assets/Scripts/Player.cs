@@ -1,44 +1,23 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Photon.Pun;
 
-public class Player : MonoBehaviourPunCallbacks
+public class Player : MonoBehaviour
 {
-
     public float moveInput;
     public Transform groundCheck;
     public LayerMask groundLayer;
-    public Stats playerStats; // Add reference to Stats
-
-    public PhotonView PhotonView;
+    public Stats playerStats;
     public Text PlayerNameText;
-    public GameObject PlayerCamera;
     public Rigidbody2D rb;
     public SpriteRenderer sr;
     public bool isGrounded = false;
-
     public GameObject BulletObject;
     public Transform FirePoint;
     public bool DisableInput = false;
 
-    private void Awake()
+    private void Update()
     {
-        if (photonView.IsMine)
-        {
-            PlayerNameText.text = PhotonNetwork.LocalPlayer.NickName;
-        }
-        else
-        {
-            PlayerNameText.text = photonView.Owner.NickName;
-            PlayerNameText.color = Color.cyan;
-        }
-    }
-
-    void Update()
-    {
-        if (photonView.IsMine && !DisableInput)
+        if (!DisableInput)
         {
             CheckInput();
         }
@@ -46,15 +25,10 @@ public class Player : MonoBehaviourPunCallbacks
 
     private void Shoot()
     {
-        if (sr.flipX == false)
+        GameObject bullet = Instantiate(BulletObject, FirePoint.position, Quaternion.identity);
+        if (sr.flipX)
         {
-            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
-        }
-
-        if (sr.flipX == true)
-        {
-            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
-            obj.GetComponent<PhotonView>().RPC("ChangeDir_Left", RpcTarget.All);
+            //bullet.GetComponent<Bullet>().ChangeDir_Left();
         }
     }
 
@@ -71,22 +45,24 @@ public class Player : MonoBehaviourPunCallbacks
 
         if (Input.GetKeyDown(KeyCode.A))
         {
-            photonView.RPC("FlipTrue", RpcTarget.All);
+            FlipTrue();
         }
 
         if (Input.GetKeyDown(KeyCode.D))
         {
-            photonView.RPC("FlipFalse", RpcTarget.All);
+            FlipFalse();
+        }
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            //Shoot();
         }
     }
 
-    [PunRPC]
     private void FlipTrue()
     {
         sr.flipX = true;
     }
 
-    [PunRPC]
     private void FlipFalse()
     {
         sr.flipX = false;

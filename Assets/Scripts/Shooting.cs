@@ -1,7 +1,6 @@
 using UnityEngine;
-using Photon.Pun;
 
-public class Shooting : MonoBehaviourPun
+public class Shooting : MonoBehaviour
 {
     [Header("References")]
     public GameObject bulletPrefab;
@@ -19,10 +18,10 @@ public class Shooting : MonoBehaviourPun
 
     private void Start()
     {
-        mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        mainCam = Camera.main;
         CalculateTimeBetweenShots();
         currentAmmo = shootingStats._maxAmmo;
-        lastShotTime = -timeBetweenShots; 
+        lastShotTime = -timeBetweenShots;
     }
 
     private void CalculateTimeBetweenShots()
@@ -32,8 +31,6 @@ public class Shooting : MonoBehaviourPun
 
     private void Update()
     {
-        if (!photonView.IsMine) return;
-
         HandleAiming();
         HandleFiring();
         HandleReloading();
@@ -51,7 +48,6 @@ public class Shooting : MonoBehaviourPun
     {
         if (isReloading) return;
 
-        // Automatic fire while holding mouse button
         if (Input.GetButton("Fire1") && currentAmmo > 0)
         {
             if (Time.time - lastShotTime >= timeBetweenShots)
@@ -66,8 +62,10 @@ public class Shooting : MonoBehaviourPun
     {
         Vector3 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - firePoint.position).normalized;
-        object[] bulletData = new object[] { direction };
-        PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation, 0, bulletData);
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        bullet.GetComponent<Bullet>().Initialize(direction, shootingStats);
+
         currentAmmo--;
 
         if (currentAmmo <= 0)

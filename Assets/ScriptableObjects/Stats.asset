@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ead5bcc98ff1964ea5d22ea8bd513c6, type: 3}
   m_Name: Stats
   m_EditorClassIdentifier: 
-  _bulletDamage: 16
-  _bulletSpeed: 33.8
-  _bulletSize: 0.4725
+  _bulletDamage: 20
+  _bulletSpeed: 26
+  _bulletSize: 0.315
   _bounceCount: 0
-  _fireRate: 5.4
-  _reloadTime: 4.2
-  _maxAmmo: 9
-  _health: 0
-  _speed: 13.103999
+  _fireRate: 5
+  _reloadTime: 3
+  _maxAmmo: 11
+  _health: 140
+  _speed: 15.599999
   _jumpHeight: 13
