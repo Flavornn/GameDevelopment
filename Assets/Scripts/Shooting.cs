@@ -1,6 +1,8 @@
+using System.Globalization;
+using Unity.Netcode;
 using UnityEngine;
 
-public class Shooting : MonoBehaviour
+public class Shooting : NetworkBehaviour
 {
     [Header("References")]
     public GameObject bulletPrefab;
@@ -31,6 +33,8 @@ public class Shooting : MonoBehaviour
 
     private void Update()
     {
+        if (!IsOwner) return;
+
         HandleAiming();
         HandleFiring();
         HandleReloading();
@@ -63,7 +67,15 @@ public class Shooting : MonoBehaviour
         Vector3 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - firePoint.position).normalized;
 
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        // Request server to spawn bullet
+        FireServerRpc(direction, firePoint.position, firePoint.rotation);
+    }
+
+    [ServerRpc]
+    private void FireServerRpc(Vector2 direction, Vector3 position, Quaternion rotation)
+    {
+        GameObject bullet = Instantiate(bulletPrefab, position, rotation);
+        bullet.GetComponent<NetworkObject>().Spawn();
         bullet.GetComponent<Bullet>().Initialize(direction, shootingStats);
 
         currentAmmo--;

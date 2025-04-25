@@ -1,8 +1,10 @@
-using Photon.Pun;
+using System;
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance;
 
@@ -15,6 +17,8 @@ public class GameManager : MonoBehaviour
     public Text PingText;
     private bool Off = false;
     public GameObject DisconnectUI;
+    public string gameOverSceneName = "PowerSelect";
+
 
     [HideInInspector]public GameObject LocalPlayer;
     public Text RespawnTimerText;
@@ -24,14 +28,22 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-        GameCanvas.SetActive(true);
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+        //GameCanvas.SetActive(true);
     }
 
     private void Update()
     {
         CheckInput();
-        PingText.text = "Ping: " + PhotonNetwork.GetPing();
+        PingText.text = "Ping: ";
 
         if(RunRespawnTimer)
         {
@@ -41,8 +53,8 @@ public class GameManager : MonoBehaviour
 
     private void RespawnLocation()
     {
-        float RandomValue = Random.Range(-5, 5f);
-        LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
+        //float RandomValue = Random.Range(-5, 5f);
+        //LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
     }
 
     private void StartRespawn()
@@ -57,7 +69,7 @@ public class GameManager : MonoBehaviour
 
         if (TimerAmount <= 0)
         {
-            LocalPlayer.GetComponent<PhotonView>().RPC("Respawn", RpcTarget.All);
+            //LocalPlayer.GetComponent<PhotonView>().RPC("Respawn", RpcTarget.All);
             LocalPlayer.GetComponent<PlayerHealth>().EnableInput();
             RespawnLocation();
             RespawnMenu.SetActive(false);
@@ -86,26 +98,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void SpawnPlayer()
+    public void PlayerDied()
     {
-        float randomValue = Random.Range(-2.5f, 2.5f);
-        GameObject player = PhotonNetwork.Instantiate(
-        PlayerPrefab.name,
-        spawnPositions,
-        Quaternion.identity,
-        0
-    );
-        if (player.GetComponent<PhotonView>().IsMine)
-        {
-            LocalPlayer = player;
-        }
+        if (!IsServer) return;
 
-        GameCanvas.SetActive(false); 
+        LoadGameOverSceneClientRpc();
     }
 
-    public void LeaveRoom()
+    [ClientRpc]
+    private void LoadGameOverSceneClientRpc()
     {
-        PhotonNetwork.LeaveRoom();
-        PhotonNetwork.LoadLevel("Lobby");
+        // This will be called on all clients
+        SceneManager.LoadScene(gameOverSceneName);
     }
 }

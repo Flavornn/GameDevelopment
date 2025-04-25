@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
-public class PlayerHealth : MonoBehaviour
+public class PlayerHealth : NetworkBehaviour
 {
-    public Stats playerStats; // Reference to Stats ScriptableObject
-    private float currentHealth; // Local health value for each player instance
+    public Stats playerStats; 
+    private float currentHealth; 
 
     public Image FillImage;
     public Rigidbody2D rb;
@@ -15,13 +16,13 @@ public class PlayerHealth : MonoBehaviour
     public Player plMove;
     public GameObject PlayerCanvas;
 
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
-        // Initialize local health with the max health from Stats
+        if (!IsServer) return;
+
         currentHealth = playerStats._health;
         UpdateHealthUI();
     }
-
 
     public void ReduceHealth(int amount)
     {
@@ -47,28 +48,23 @@ public class PlayerHealth : MonoBehaviour
         PlayerCanvas.SetActive(false);
 
 
-        GameManager.Instance.EnableRespawn();
+        //GameManager.Instance.EnableRespawn();
 
     }
 
-    private void Respawn()
+    private void ModifyHealth(int amount)
     {
-        rb.gravityScale = 1;
-        bc.enabled = true;
-        sr.enabled = true;
-        PlayerCanvas.SetActive(true);
-        currentHealth = playerStats._health; // Reset to max health from Stats
+        if (!IsServer) return;
+
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
         UpdateHealthUI();
-    }
 
-    private void ModifyHealth(int amount) // Changed from float to int
-    {
-            currentHealth -= amount;
-            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
-            UpdateHealthUI();
-            CheckHealth();
-
-            plMove.DisableInput = false;
+        if (currentHealth <= 0)
+        {
+            Dead();
+            GameManager.Instance.PlayerDied();
+        }
     }
 
     private void UpdateHealthUI()

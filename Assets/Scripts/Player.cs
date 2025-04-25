@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
-
-public class Player : MonoBehaviour
+using Unity.Netcode;
+using System.Globalization;
+public class Player : NetworkBehaviour
 {
     public float moveInput;
     public Transform groundCheck;
@@ -15,8 +16,21 @@ public class Player : MonoBehaviour
     public Transform FirePoint;
     public bool DisableInput = false;
 
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+        {
+            // Disable components that should only be active for the local player
+            enabled = false;
+            return;
+        }
+    }
+
     private void Update()
     {
+        if (!IsOwner) return;
+
+
         if (!DisableInput)
         {
             CheckInput();
