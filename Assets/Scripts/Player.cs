@@ -1,37 +1,44 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Unity.Netcode;
-using System.Globalization;
-public class Player : NetworkBehaviour
+using Photon.Pun;
+
+public class Player : MonoBehaviourPunCallbacks
 {
+
     public float moveInput;
     public Transform groundCheck;
     public LayerMask groundLayer;
-    public Stats playerStats;
+    public Stats playerStats; // Add reference to Stats
+
+    public PhotonView PhotonView;
     public Text PlayerNameText;
+    public GameObject PlayerCamera;
     public Rigidbody2D rb;
     public SpriteRenderer sr;
     public bool isGrounded = false;
+
     public GameObject BulletObject;
     public Transform FirePoint;
     public bool DisableInput = false;
 
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
-        if (!IsOwner)
+        if (photonView.IsMine)
         {
-            // Disable components that should only be active for the local player
-            enabled = false;
-            return;
+            PlayerNameText.text = PhotonNetwork.LocalPlayer.NickName;
+        }
+        else
+        {
+            PlayerNameText.text = photonView.Owner.NickName;
+            PlayerNameText.color = Color.cyan;
         }
     }
 
-    private void Update()
+    void Update()
     {
-        if (!IsOwner) return;
-
-
-        if (!DisableInput)
+        if (photonView.IsMine && !DisableInput)
         {
             CheckInput();
         }
@@ -39,10 +46,15 @@ public class Player : NetworkBehaviour
 
     private void Shoot()
     {
-        GameObject bullet = Instantiate(BulletObject, FirePoint.position, Quaternion.identity);
-        if (sr.flipX)
+        if (sr.flipX == false)
         {
-            //bullet.GetComponent<Bullet>().ChangeDir_Left();
+            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
+        }
+
+        if (sr.flipX == true)
+        {
+            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
+            obj.GetComponent<PhotonView>().RPC("ChangeDir_Left", RpcTarget.All);
         }
     }
 
@@ -59,24 +71,22 @@ public class Player : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.A))
         {
-            FlipTrue();
+            photonView.RPC("FlipTrue", RpcTarget.All);
         }
 
         if (Input.GetKeyDown(KeyCode.D))
         {
-            FlipFalse();
-        }
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-            //Shoot();
+            photonView.RPC("FlipFalse", RpcTarget.All);
         }
     }
 
+    [PunRPC]
     private void FlipTrue()
     {
         sr.flipX = true;
     }
 
+    [PunRPC]
     private void FlipFalse()
     {
         sr.flipX = false;

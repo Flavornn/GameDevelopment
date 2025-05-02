@@ -1,13 +1,9 @@
-using System;
-using Unity.Netcode;
+using Photon.Pun;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameManager : NetworkBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
-    public static GameManager Instance;
-
     public int roundNumber = 1;
     public Text roundText;
     public PlayerHealth player;
@@ -17,35 +13,41 @@ public class GameManager : NetworkBehaviour
     public Text PingText;
     private bool Off = false;
     public GameObject DisconnectUI;
-    public string gameOverSceneName = "PowerSelect";
 
-
-    [HideInInspector]public GameObject LocalPlayer;
+    [HideInInspector] public GameObject LocalPlayer;
     public Text RespawnTimerText;
     public GameObject RespawnMenu;
     private float TimerAmount = 5f;
     private bool RunRespawnTimer = false;
 
+    private static GameManager _instance;
+    public static GameManager Instance => _instance;
+
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (_instance != null && _instance != this)
         {
             Destroy(gameObject);
+            return;
         }
-        //GameCanvas.SetActive(true);
+
+        _instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Remove PhotonView if not needed
+        if (GetComponent<PhotonView>())
+        {
+            Destroy(GetComponent<PhotonView>());
+        }
+        GameCanvas.SetActive(true);
     }
 
     private void Update()
     {
         CheckInput();
-        PingText.text = "Ping: ";
+        PingText.text = "Ping: " + PhotonNetwork.GetPing();
 
-        if(RunRespawnTimer)
+        if (RunRespawnTimer)
         {
             StartRespawn();
         }
@@ -53,8 +55,8 @@ public class GameManager : NetworkBehaviour
 
     private void RespawnLocation()
     {
-        //float RandomValue = Random.Range(-5, 5f);
-        //LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
+        float RandomValue = Random.Range(-5, 5f);
+        LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
     }
 
     private void StartRespawn()
@@ -69,7 +71,7 @@ public class GameManager : NetworkBehaviour
 
         if (TimerAmount <= 0)
         {
-            //LocalPlayer.GetComponent<PhotonView>().RPC("Respawn", RpcTarget.All);
+            LocalPlayer.GetComponent<PhotonView>().RPC("Respawn", RpcTarget.All);
             LocalPlayer.GetComponent<PlayerHealth>().EnableInput();
             RespawnLocation();
             RespawnMenu.SetActive(false);
@@ -91,24 +93,38 @@ public class GameManager : NetworkBehaviour
             DisconnectUI.SetActive(false);
             Off = false;
         }
-        else if(!Off && Input.GetKeyDown(KeyCode.Escape))
+        else if (!Off && Input.GetKeyDown(KeyCode.Escape))
         {
             DisconnectUI.SetActive(true);
             Off = true;
         }
     }
 
-    public void PlayerDied()
+    public void SpawnPlayer()
     {
-        if (!IsServer) return;
+        float randomValue = Random.Range(-2.5f, 2.5f);
+        GameObject player = PhotonNetwork.Instantiate(
+        PlayerPrefab.name,
+        spawnPositions,
+        Quaternion.identity,
+        0
+    );
+        if (player.GetComponent<PhotonView>().IsMine)
+        {
+            LocalPlayer = player;
+        }
 
-        LoadGameOverSceneClientRpc();
+        GameCanvas.SetActive(false);
     }
 
-    [ClientRpc]
-    private void LoadGameOverSceneClientRpc()
+    public void LeaveRoom()
     {
-        // This will be called on all clients
-        SceneManager.LoadScene(gameOverSceneName);
+        PhotonNetwork.LeaveRoom();
+        PhotonNetwork.LoadLevel("Lobby");
+    }
+
+    public override void OnLeftRoom()
+    {
+        Destroy(gameObject);
     }
 }

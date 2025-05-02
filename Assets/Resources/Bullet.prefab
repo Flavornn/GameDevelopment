@@ -12,8 +12,9 @@ GameObject:
   - component: {fileID: 4224921288183239026}
   - component: {fileID: 5110398080003596859}
   - component: {fileID: 2068714632087678128}
+  - component: {fileID: -4017045678960490059}
   - component: {fileID: 7768008255631222596}
-  - component: {fileID: 1747072179757153743}
+  - component: {fileID: 3786293813958732488}
   m_Layer: 0
   m_Name: Bullet
   m_TagString: Bullet
@@ -148,6 +149,29 @@ MonoBehaviour:
   MoveDir: 0
   bulletStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
   force: 0
+--- !u!114 &-4017045678960490059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307059085973263709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 3786293813958732488}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!50 &7768008255631222596
 Rigidbody2D:
   serializedVersion: 4
@@ -175,7 +199,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 0
---- !u!114 &1747072179757153743
+--- !u!114 &3786293813958732488
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -184,15 +208,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 307059085973263709}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1322722781
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 0
+  m_TeleportIfDistanceGreaterThan: 3

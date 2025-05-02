@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 using UnityEngine.UI;
-using Unity.Netcode;
 
-public class PlayerHealth : NetworkBehaviour
+public class PlayerHealth : MonoBehaviourPunCallbacks
 {
-    public Stats playerStats; 
-    private float currentHealth; 
+    public Stats playerStats; // Reference to Stats ScriptableObject
+    private float currentHealth; // Local health value for each player instance
 
     public Image FillImage;
     public Rigidbody2D rb;
@@ -16,14 +16,14 @@ public class PlayerHealth : NetworkBehaviour
     public Player plMove;
     public GameObject PlayerCanvas;
 
-    public override void OnNetworkSpawn()
+    private void Awake()
     {
-        if (!IsServer) return;
-
+        // Initialize local health with the max health from Stats
         currentHealth = playerStats._health;
         UpdateHealthUI();
     }
 
+    [PunRPC]
     public void ReduceHealth(int amount)
     {
         ModifyHealth(amount);
@@ -31,8 +31,12 @@ public class PlayerHealth : NetworkBehaviour
 
     private void CheckHealth()
     {
+        if (photonView.IsMine && currentHealth <= 0)
+        {
             GameManager.Instance.EnableRespawn();
             plMove.DisableInput = true;
+            this.GetComponent<PhotonView>().RPC("Dead", RpcTarget.All);
+        }
     }
 
     public void EnableInput()
@@ -40,6 +44,7 @@ public class PlayerHealth : NetworkBehaviour
         plMove.DisableInput = false;
     }
 
+    [PunRPC]
     private void Dead()
     {
         rb.gravityScale = 0;
@@ -47,23 +52,33 @@ public class PlayerHealth : NetworkBehaviour
         sr.enabled = false;
         PlayerCanvas.SetActive(false);
 
-
-        //GameManager.Instance.EnableRespawn();
-
+        if (photonView.IsMine)
+        {
+            GameManager.Instance.EnableRespawn();
+        }
     }
 
-    private void ModifyHealth(int amount)
+    [PunRPC]
+    private void Respawn()
     {
-        if (!IsServer) return;
-
-        currentHealth -= amount;
-        currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
+        rb.gravityScale = 1;
+        bc.enabled = true;
+        sr.enabled = true;
+        PlayerCanvas.SetActive(true);
+        currentHealth = playerStats._health; // Reset to max health from Stats
         UpdateHealthUI();
+    }
 
-        if (currentHealth <= 0)
+    private void ModifyHealth(int amount) // Changed from float to int
+    {
+            currentHealth -= amount;
+            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
+            UpdateHealthUI();
+            CheckHealth();
+
+        if (photonView.IsMine)
         {
-            Dead();
-            GameManager.Instance.PlayerDied();
+            plMove.DisableInput = false;
         }
     }
 

@@ -1,7 +1,11 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Sci-Fi UI/_SciFi_GUISkin_/Skin_Assets/joystick.meta
 guid: 6fcce8e8873ca23408caf59cc6fd8e72
+========
+guid: 7a9e2b9a8d7c549d3a46ef8f66cf8c10
+>>>>>>>> parent of 0a9be06 (PowerUp Scene + UI):Assets/Pixel Font - Tripfive/Fonts.meta
 folderAsset: yes
-timeCreated: 1438091524
+timeCreated: 1495065867
 licenseType: Store
 DefaultImporter:
   userData: 

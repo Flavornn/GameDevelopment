@@ -1,8 +1,7 @@
-using System.Globalization;
-using Unity.Netcode;
 using UnityEngine;
+using Photon.Pun;
 
-public class Shooting : NetworkBehaviour
+public class Shooting : MonoBehaviourPun
 {
     [Header("References")]
     public GameObject bulletPrefab;
@@ -20,10 +19,10 @@ public class Shooting : NetworkBehaviour
 
     private void Start()
     {
-        mainCam = Camera.main;
+        mainCam = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         CalculateTimeBetweenShots();
         currentAmmo = shootingStats._maxAmmo;
-        lastShotTime = -timeBetweenShots;
+        lastShotTime = -timeBetweenShots; 
     }
 
     private void CalculateTimeBetweenShots()
@@ -33,7 +32,7 @@ public class Shooting : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsOwner) return;
+        if (!photonView.IsMine) return;
 
         HandleAiming();
         HandleFiring();
@@ -52,6 +51,7 @@ public class Shooting : NetworkBehaviour
     {
         if (isReloading) return;
 
+        // Automatic fire while holding mouse button
         if (Input.GetButton("Fire1") && currentAmmo > 0)
         {
             if (Time.time - lastShotTime >= timeBetweenShots)
@@ -66,18 +66,8 @@ public class Shooting : NetworkBehaviour
     {
         Vector3 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePos - firePoint.position).normalized;
-
-        // Request server to spawn bullet
-        FireServerRpc(direction, firePoint.position, firePoint.rotation);
-    }
-
-    [ServerRpc]
-    private void FireServerRpc(Vector2 direction, Vector3 position, Quaternion rotation)
-    {
-        GameObject bullet = Instantiate(bulletPrefab, position, rotation);
-        bullet.GetComponent<NetworkObject>().Spawn();
-        bullet.GetComponent<Bullet>().Initialize(direction, shootingStats);
-
+        object[] bulletData = new object[] { direction };
+        PhotonNetwork.Instantiate(bulletPrefab.name, firePoint.position, firePoint.rotation, 0, bulletData);
         currentAmmo--;
 
         if (currentAmmo <= 0)
