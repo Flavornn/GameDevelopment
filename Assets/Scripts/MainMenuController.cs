@@ -20,6 +20,8 @@ public class MainMenuController : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
+        Debug.Log("Connecting to Photon...", this);
+        PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.PhotonServerSettings.AppSettings.AppVersion = VersionName;
         PhotonNetwork.ConnectUsingSettings();
     }
