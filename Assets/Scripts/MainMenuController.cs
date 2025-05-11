@@ -1,74 +1,119 @@
-using JetBrains.Annotations;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.UI;
+using TMPro;
 
 public class MainMenuController : MonoBehaviourPunCallbacks
 {
     [SerializeField] private string VersionName = "0.1";
     [SerializeField] private GameObject UsernameMenu;
-    [SerializeField] private GameObject ConnectPanel;
-
-    [SerializeField] private InputField CreateGameInput;
-    [SerializeField] private InputField JoinGameInput;
+    [SerializeField] private GameObject WaitingPanel;
+    [SerializeField] private TMP_Text WaitingText;
     [SerializeField] private InputField UsernameInput;
-
     [SerializeField] private GameObject StartButton;
+
+    private bool isSearching = false;
+    private const string MatchmakingRoomName = "MatchmakingRoom";
 
     private void Awake()
     {
-        Debug.Log("Connecting to Photon...", this);
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.PhotonServerSettings.AppSettings.AppVersion = VersionName;
-        PhotonNetwork.ConnectUsingSettings();
     }
 
     private void Start()
     {
         UsernameMenu.SetActive(true);
-    }
-
-    public override void OnConnectedToMaster()
-    {
-        PhotonNetwork.JoinLobby(TypedLobby.Default);
-        Debug.Log("connected");
+        WaitingPanel.SetActive(false);
     }
 
     public void ChangeUsernameInput()
     {
-        if (UsernameInput.text.Length >= 1)
+        StartButton.SetActive(UsernameInput.text.Length >= 1);
+    }
+
+    public void StartMatchmaking()
+    {
+        if (isSearching) return;
+
+        PhotonNetwork.NickName = UsernameInput.text;
+        UsernameMenu.SetActive(false);
+        WaitingPanel.SetActive(true);
+        WaitingText.text = "Searching for opponent...";
+
+        if (!PhotonNetwork.IsConnected)
         {
-            StartButton.SetActive(true); 
+            PhotonNetwork.ConnectUsingSettings();
+            isSearching = true;
         }
         else
         {
-            StartButton.SetActive(false);
+            JoinMatchmaking();
         }
     }
 
-    public void SetUsername()
+    public override void OnConnectedToMaster()
     {
-        UsernameMenu.SetActive(false);
-        PhotonNetwork.NickName = UsernameInput.text;
+        if (isSearching)
+        {
+            JoinMatchmaking();
+        }
     }
 
-    public void CreateGame()
+    private void JoinMatchmaking()
     {
-        PhotonNetwork.CreateRoom(CreateGameInput.text, new RoomOptions() { MaxPlayers = 2 }, null);
+        RoomOptions roomOptions = new RoomOptions
+        {
+            MaxPlayers = 2,
+            IsVisible = true,
+            IsOpen = true
+        };
+
+        PhotonNetwork.JoinRandomOrCreateRoom(
+            roomOptions: roomOptions,
+            expectedMaxPlayers: 2
+        );
     }
 
-    public void JoinGame()
+    public override void OnJoinedRoom()
     {
-        RoomOptions roomOptions = new RoomOptions();
-        roomOptions.MaxPlayers = 2;
-        PhotonNetwork.JoinOrCreateRoom(JoinGameInput.text, roomOptions, TypedLobby.Default);
+        WaitingText.text = $"Waiting for opponent... ({PhotonNetwork.CurrentRoom.PlayerCount}/2)";
+
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
+        {
+            StartCoroutine(StartGame());
+        }
     }
 
-    override public void OnJoinedRoom()
+    public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
-        PhotonNetwork.LoadLevel("Game");
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
+        {
+            StartCoroutine(StartGame());
+        }
+    }
+
+    private IEnumerator StartGame()
+    {
+        WaitingText.text = "Opponent found! Starting game...";
+        yield return new WaitForSeconds(1.5f);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel("Game");
+        }
+    }
+
+    public void CancelMatchmaking()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            PhotonNetwork.LeaveRoom();
+        }
+        isSearching = false;
+        WaitingPanel.SetActive(false);
+        UsernameMenu.SetActive(true);
     }
 }

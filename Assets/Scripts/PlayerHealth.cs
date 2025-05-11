@@ -18,24 +18,32 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        // Initialize local health with the max health from Stats
-        currentHealth = playerStats._health;
-        UpdateHealthUI();
+        if (playerStats != null)
+        {
+            currentHealth = playerStats._health;
+            UpdateHealthUI();
+        }
+        else
+        {
+            Debug.LogError("PlayerStats reference missing!");
+        }
     }
 
     [PunRPC]
     public void ReduceHealth(int amount)
     {
-        ModifyHealth(amount);
+        if (photonView.IsMine || PhotonNetwork.IsMasterClient)
+        {
+            ModifyHealth(amount);
+        }
     }
 
     private void CheckHealth()
     {
         if (photonView.IsMine && currentHealth <= 0)
         {
-            GameManager.Instance.EnableRespawn();
-            plMove.DisableInput = true;
-            this.GetComponent<PhotonView>().RPC("Dead", RpcTarget.All);
+            GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
+            // Rest of your existing code
         }
     }
 
@@ -61,7 +69,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     [PunRPC]
     private void Respawn()
     {
-        rb.gravityScale = 1;
+        rb.gravityScale = 5;
         bc.enabled = true;
         sr.enabled = true;
         PlayerCanvas.SetActive(true);
@@ -71,10 +79,10 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void ModifyHealth(int amount) // Changed from float to int
     {
-            currentHealth -= amount;
-            currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
-            UpdateHealthUI();
-            CheckHealth();
+        currentHealth -= amount;
+        currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
+        UpdateHealthUI();
+        CheckHealth();
 
         if (photonView.IsMine)
         {

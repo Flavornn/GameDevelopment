@@ -132,7 +132,7 @@ ScriptedImporter:
       y: 4
       width: 529
       height: 248
-    spriteID: 4955f17f740f7cb4fbef9d859d55de32
+    spriteID: 6c92c1da37166b54bbbed96057482347
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -152,7 +152,7 @@ ScriptedImporter:
       y: 260
       width: 529
       height: 248
-    spriteID: e282c8ad29132dd45ab91594ceb6ba5c
+    spriteID: babd3a7cc70d34c4ca699e21d9df35ad
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -172,7 +172,7 @@ ScriptedImporter:
       y: 516
       width: 529
       height: 248
-    spriteID: 5a679bfbf4216ac48b83aa72bc9179be
+    spriteID: c02a476c03f0b664caa80585edde43b1
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -192,7 +192,7 @@ ScriptedImporter:
       y: 772
       width: 529
       height: 248
-    spriteID: 1e4dd290ef83b4a458f5dac6fda67843
+    spriteID: a42bbf45dce274b4585ad7b14977057e
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -212,7 +212,7 @@ ScriptedImporter:
       y: 1028
       width: 529
       height: 248
-    spriteID: dece7c7f4a5ffd74c8e1b7da513adb65
+    spriteID: eb0edc02bc13d2847b09ea3bf8e00f78
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -237,7 +237,7 @@ ScriptedImporter:
         y: -91
         width: 529
         height: 248
-      spriteId: 4955f17f740f7cb4fbef9d859d55de32
+      spriteId: 6c92c1da37166b54bbbed96057482347
     - name: Inventory example_Frame_1
       frameIndex: 1
       cellRect:
@@ -245,7 +245,7 @@ ScriptedImporter:
         y: -91
         width: 529
         height: 248
-      spriteId: e282c8ad29132dd45ab91594ceb6ba5c
+      spriteId: babd3a7cc70d34c4ca699e21d9df35ad
     - name: Inventory example_Frame_2
       frameIndex: 2
       cellRect:
@@ -253,7 +253,7 @@ ScriptedImporter:
         y: -91
         width: 529
         height: 248
-      spriteId: 5a679bfbf4216ac48b83aa72bc9179be
+      spriteId: c02a476c03f0b664caa80585edde43b1
     - name: Inventory example_Frame_3
       frameIndex: 3
       cellRect:
@@ -261,7 +261,7 @@ ScriptedImporter:
         y: -91
         width: 529
         height: 248
-      spriteId: 1e4dd290ef83b4a458f5dac6fda67843
+      spriteId: a42bbf45dce274b4585ad7b14977057e
     - name: Inventory example_Frame_4
       frameIndex: 4
       cellRect:
@@ -269,7 +269,7 @@ ScriptedImporter:
         y: -91
         width: 529
         height: 248
-      spriteId: dece7c7f4a5ffd74c8e1b7da513adb65
+      spriteId: eb0edc02bc13d2847b09ea3bf8e00f78
     linkedCells: []
     parentIndex: -1
   platformSettings: []

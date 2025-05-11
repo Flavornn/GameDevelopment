@@ -10157,7 +10157,7 @@ Transform:
   m_GameObject: {fileID: 1853872208}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 286.01273, y: 252.47792, z: -3.0202477}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10180,7 +10180,7 @@ MonoBehaviour:
   player: {fileID: 0}
   PlayerPrefab: {fileID: 7925749599458127467, guid: 12682438fb44bbb4aaa68d1004215b5e, type: 3}
   GameCanvas: {fileID: 844124472}
-  spawnPositions: {x: 2, y: 0, z: 0}
+  spawnPositions: {x: 0, y: 0, z: 0}
   PingText: {fileID: 708367559}
   DisconnectUI: {fileID: 1594209834}
   LocalPlayer: {fileID: 0}
@@ -10198,7 +10198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43cae358025478e4fb401e707ca7ca56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameSceneName: GameScene
+  gameSceneName: Game
   menuSceneName: MainMenu
   powerupScreen: PowerSelect
   sceneTransitionDelay: 0.5

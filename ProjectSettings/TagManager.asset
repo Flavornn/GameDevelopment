@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Bullet
   - Dummy
+  - GameCanvas
   layers:
   - Default
   - TransparentFX

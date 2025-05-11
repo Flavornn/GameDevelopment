@@ -306,6 +306,7 @@ GameObject:
   - component: {fileID: 398991229}
   - component: {fileID: 398991230}
   - component: {fileID: 398991231}
+  - component: {fileID: 398991232}
   m_Layer: 5
   m_Name: OptionField
   m_TagString: Untagged
@@ -408,10 +409,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   powerUpsSystem: {fileID: 11400000, guid: 79718ccbe28416645a9af3e8c1ec0fdb, type: 2}
   playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
-  powerUpPrefab: {fileID: 5361431324784434149, guid: 4a48011987a08fa45bc2fa6c44310127, type: 3}
+  powerUpPrefab: {fileID: 7018216405038213078, guid: 5ab94247d1cdb9e4cbc21b513d8c3480, type: 3}
   contentParent: {fileID: 398991225}
   powerUpsToShow: 3
-  buttonCanvasGroup: {fileID: 398991231}
 --- !u!225 &398991231
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -424,6 +424,28 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &398991232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398991224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 2
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &814523019
 GameObject:
   m_ObjectHideFlags: 0

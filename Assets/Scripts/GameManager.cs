@@ -1,6 +1,8 @@
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
@@ -22,6 +24,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private static GameManager _instance;
     public static GameManager Instance => _instance;
+    public static int DeadPlayerActorNumber = -1;
 
     private void Awake()
     {
@@ -38,14 +41,32 @@ public class GameManager : MonoBehaviourPunCallbacks
         if (GetComponent<PhotonView>())
         {
             Destroy(GetComponent<PhotonView>());
+    }
+        //GameCanvas.SetActive(true);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    private void Start()
+    {
+        if (PhotonNetwork.InRoom)
+        {
+            //SpawnPlayer();
         }
-        GameCanvas.SetActive(true);
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private void Update()
     {
         CheckInput();
-        PingText.text = "Ping: " + PhotonNetwork.GetPing();
+
+        if (PingText != null)
+        {
+            PingText.text = "Ping: " + PhotonNetwork.GetPing();
+        }
 
         if (RunRespawnTimer)
         {
@@ -53,8 +74,18 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
     }
 
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Game")
+        {
+            SpawnPlayer();
+        }
+    }
+
     private void RespawnLocation()
     {
+        if (LocalPlayer == null) return;
+
         float RandomValue = Random.Range(-5, 5f);
         LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
     }
@@ -67,7 +98,11 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
         TimerAmount -= Time.deltaTime;
-        RespawnTimerText.text = "Respawning in " + TimerAmount.ToString("F0");
+
+        if (RespawnTimerText != null)
+        {
+            RespawnTimerText.text = "Respawning in " + TimerAmount.ToString("F0");
+        }
 
         if (TimerAmount <= 0)
         {
@@ -102,19 +137,39 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public void SpawnPlayer()
     {
-        float randomValue = Random.Range(-2.5f, 2.5f);
-        GameObject player = PhotonNetwork.Instantiate(
-        PlayerPrefab.name,
-        spawnPositions,
-        Quaternion.identity,
-        0
-    );
-        if (player.GetComponent<PhotonView>().IsMine)
+        if (PlayerPrefab == null)
         {
-            LocalPlayer = player;
+            Debug.LogError("PlayerPrefab is not assigned!");
+            return;
         }
 
-        GameCanvas.SetActive(false);
+        Vector3 spawnPos = new Vector3(
+            Random.Range(-2.5f, 2.5f),
+            spawnPositions.y,
+            spawnPositions.z
+        );
+
+        GameObject playerObj = PhotonNetwork.Instantiate(
+            PlayerPrefab.name,
+            spawnPos,
+            Quaternion.identity,
+            0
+        );
+
+        if (playerObj != null)
+        {
+            PhotonView pv = playerObj.GetComponent<PhotonView>();
+            if (pv.IsMine)
+            {
+                LocalPlayer = playerObj;
+                Debug.Log("Spawned local player: " + LocalPlayer.name);
+
+                if (GameCanvas != null)
+                {
+                    GameCanvas.SetActive(false);
+                }
+            }
+        }
     }
 
     public void LeaveRoom()
@@ -126,5 +181,14 @@ public class GameManager : MonoBehaviourPunCallbacks
     public override void OnLeftRoom()
     {
         Destroy(gameObject);
+    }
+
+    public void HandlePlayerDeath(int actorNumber)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "DeadPlayer", actorNumber } });
+            PhotonNetwork.LoadLevel("PowerSelect");
+        }
     }
 }

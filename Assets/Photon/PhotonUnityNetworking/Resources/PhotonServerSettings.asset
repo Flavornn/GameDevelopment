@@ -51,6 +51,8 @@ MonoBehaviour:
   - Respawn
   - NotifyDeathToOthers
   - RequestMasterLoad
+  - RPC_ConfirmSelections
+  - RPC_SpawnNewPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
