@@ -14,7 +14,6 @@ public class Player : MonoBehaviourPunCallbacks
 
     public PhotonView PhotonView;
     public Text PlayerNameText;
-    public GameObject PlayerCamera;
     public Rigidbody2D rb;
     public SpriteRenderer sr;
     public bool isGrounded = false;
@@ -41,20 +40,6 @@ public class Player : MonoBehaviourPunCallbacks
         if (photonView.IsMine && !DisableInput)
         {
             CheckInput();
-        }
-    }
-
-    private void Shoot()
-    {
-        if (sr.flipX == false)
-        {
-            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
-        }
-
-        if (sr.flipX == true)
-        {
-            GameObject obj = PhotonNetwork.Instantiate(BulletObject.name, new Vector2(FirePoint.position.x, FirePoint.position.y), Quaternion.identity, 0);
-            obj.GetComponent<PhotonView>().RPC("ChangeDir_Left", RpcTarget.All);
         }
     }
 

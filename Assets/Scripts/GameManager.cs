@@ -28,30 +28,11 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
         _instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        // Remove PhotonView if not needed
-        if (GetComponent<PhotonView>())
-        {
-            Destroy(GetComponent<PhotonView>());
-    }
-        //GameCanvas.SetActive(true);
-
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
     private void Start()
     {
-        if (PhotonNetwork.InRoom)
-        {
-            //SpawnPlayer();
-        }
     }
 
     private void OnDestroy()
@@ -67,11 +48,6 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             PingText.text = "Ping: " + PhotonNetwork.GetPing();
         }
-
-        if (RunRespawnTimer)
-        {
-            StartRespawn();
-        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -80,46 +56,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             SpawnPlayer();
         }
-    }
-
-    private void RespawnLocation()
-    {
-        if (LocalPlayer == null) return;
-
-        float RandomValue = Random.Range(-5, 5f);
-        LocalPlayer.transform.localPosition = new Vector2(RandomValue, 3f);
-    }
-
-    private void StartRespawn()
-    {
-        if (LocalPlayer == null)
+        else if (scene.name == "PowerSelect")
         {
-            Debug.LogError("LocalPlayer is not assigned!");
-            return;
-        }
-        TimerAmount -= Time.deltaTime;
-
-        if (RespawnTimerText != null)
-        {
-            RespawnTimerText.text = "Respawning in " + TimerAmount.ToString("F0");
-        }
-
-        if (TimerAmount <= 0)
-        {
-            LocalPlayer.GetComponent<PhotonView>().RPC("Respawn", RpcTarget.All);
-            LocalPlayer.GetComponent<PlayerHealth>().EnableInput();
-            RespawnLocation();
-            RespawnMenu.SetActive(false);
-            RunRespawnTimer = false;
+            Destroy(gameObject);
         }
     }
 
-    public void EnableRespawn()
-    {
-        TimerAmount = 5f;
-        RunRespawnTimer = true;
-        RespawnMenu.SetActive(true);
-    }
 
     public void CheckInput()
     {
@@ -183,12 +125,19 @@ public class GameManager : MonoBehaviourPunCallbacks
         Destroy(gameObject);
     }
 
-    public void HandlePlayerDeath(int actorNumber)
+    [PunRPC]
+    private void HandlePlayerDeathRPC(int actorNumber)
     {
         if (PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "DeadPlayer", actorNumber } });
             PhotonNetwork.LoadLevel("PowerSelect");
         }
+    }
+
+    public void HandlePlayerDeath(int actorNumber)
+    {
+        PhotonView photonView = PhotonView.Get(this);
+        photonView.RPC("HandlePlayerDeathRPC", RpcTarget.All, actorNumber);
     }
 }

@@ -53,6 +53,9 @@ MonoBehaviour:
   - RequestMasterLoad
   - RPC_ConfirmSelections
   - RPC_SpawnNewPlayer
+  - HandlePlayerDeathRPC
+  - RPC_ApplyPowerUp
+  - RPC_SyncSelectedPowerUps
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

@@ -58,11 +58,11 @@ public class Bullet : MonoBehaviourPunCallbacks
     {
         if (!MoveDir)
         {
-            transform.Translate(Vector2.right * bulletStats._bulletSpeed * Time.deltaTime); // Use stats for speed
+            transform.Translate(Vector2.right * bulletStats._bulletSpeed * Time.deltaTime);
         }
         else
         {
-            transform.Translate(Vector2.left * bulletStats._bulletSpeed * Time.deltaTime); // Use stats for speed
+            transform.Translate(Vector2.left * bulletStats._bulletSpeed * Time.deltaTime);
         }
     }
 
@@ -71,21 +71,24 @@ public class Bullet : MonoBehaviourPunCallbacks
         if (!photonView.IsMine)
             return;
 
-        PhotonView target = collision.gameObject.GetComponent<PhotonView>();
-
-        if (target != null && (!target.IsMine || target.IsRoomView))
+        PhotonView target = collision.GetComponent<PhotonView>();
+        
+        if (target != null && target.CompareTag("Player"))
         {
-            if (target.tag == "Player")
+            Debug.Log($"Bullet hit player. Bullet owner: {photonView.Owner.NickName}, Target: {target.Owner.NickName}");
+            
+            // Don't damage self
+            if (target.Owner.ActorNumber != photonView.Owner.ActorNumber)
             {
+                Debug.Log($"Applying damage: {bulletStats._bulletDamage} to player {target.Owner.NickName}");
                 target.RPC("ReduceHealth", RpcTarget.All, (int)bulletStats._bulletDamage);
+                photonView.RPC("DestroyObject", RpcTarget.All);
             }
-
-            if (target.tag == "Ground")
-            {
-                this.GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All);
-            }
-
-            this.GetComponent<PhotonView>().RPC("DestroyObject", RpcTarget.All);
+        }
+        else if (collision.CompareTag("Ground"))
+        {
+            Debug.Log("Bullet hit ground");
+            photonView.RPC("DestroyObject", RpcTarget.All);
         }
     }
 }

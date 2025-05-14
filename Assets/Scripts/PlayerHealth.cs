@@ -8,6 +8,7 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 {
     public Stats playerStats; // Reference to Stats ScriptableObject
     private float currentHealth; // Local health value for each player instance
+    public PowerUps powerUpsSystem; // Add reference to PowerUps ScriptableObject
 
     public Image FillImage;
     public Rigidbody2D rb;
@@ -22,6 +23,26 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         {
             currentHealth = playerStats._health;
             UpdateHealthUI();
+            Debug.Log($"Player {photonView.ViewID} initialized with health: {currentHealth}");
+
+            // Load and apply any active power-ups from the room properties
+            if (PhotonNetwork.CurrentRoom != null && 
+                PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("PlayerPowerUps") &&
+                powerUpsSystem != null)
+            {
+                var powerUpsData = (object[])PhotonNetwork.CurrentRoom.CustomProperties["PlayerPowerUps"];
+                foreach (object[] powerUpInfo in powerUpsData)
+                {
+                    int powerUpType = (int)powerUpInfo[0];
+                    int playerActorNumber = (int)powerUpInfo[1];
+
+                    // Only apply power-ups that belong to this player
+                    if (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
+                    {
+                        powerUpsSystem.TogglePowerUp((PowerUps.PowerUpType)powerUpType, playerStats);
+                    }
+                }
+            }
         }
         else
         {
@@ -32,9 +53,18 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     [PunRPC]
     public void ReduceHealth(int amount)
     {
-        if (photonView.IsMine || PhotonNetwork.IsMasterClient)
+        Debug.Log($"ReduceHealth called on player {photonView.ViewID}, current health: {currentHealth}, damage: {amount}");
+        ModifyHealth(amount);
+        
+        if (currentHealth <= 0)
         {
-            ModifyHealth(amount);
+            Debug.Log($"Player {photonView.ViewID} health reached 0.");
+            //photonView.RPC("Dead", RpcTarget.All);
+            
+            if (photonView.IsMine)
+            {
+                GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
+            }
         }
     }
 
@@ -43,7 +73,6 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         if (photonView.IsMine && currentHealth <= 0)
         {
             GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
-            // Rest of your existing code
         }
     }
 
@@ -52,46 +81,20 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         plMove.DisableInput = false;
     }
 
-    [PunRPC]
-    private void Dead()
+    private void ModifyHealth(int amount)
     {
-        rb.gravityScale = 0;
-        bc.enabled = false;
-        sr.enabled = false;
-        PlayerCanvas.SetActive(false);
-
-        if (photonView.IsMine)
-        {
-            GameManager.Instance.EnableRespawn();
-        }
-    }
-
-    [PunRPC]
-    private void Respawn()
-    {
-        rb.gravityScale = 5;
-        bc.enabled = true;
-        sr.enabled = true;
-        PlayerCanvas.SetActive(true);
-        currentHealth = playerStats._health; // Reset to max health from Stats
-        UpdateHealthUI();
-    }
-
-    private void ModifyHealth(int amount) // Changed from float to int
-    {
+        float previousHealth = currentHealth;
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
         UpdateHealthUI();
-        CheckHealth();
-
-        if (photonView.IsMine)
-        {
-            plMove.DisableInput = false;
-        }
+        Debug.Log($"Player {photonView.ViewID} health modified from {previousHealth} to {currentHealth}");
     }
 
     private void UpdateHealthUI()
     {
-        FillImage.fillAmount = currentHealth / playerStats._health;
+        if (FillImage != null)
+        {
+            FillImage.fillAmount = currentHealth / playerStats._health;
+        }
     }
 }

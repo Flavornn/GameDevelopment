@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Photon.Pun;
+using System.Collections;
 
 public class PowerUpMenu : MonoBehaviourPunCallbacks
 {
@@ -15,8 +16,18 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
     public int powerUpsToShow = 3;
 
     private List<PowerUps.PowerUpType> availablePowerUps;
+    private PhotonView photonView;
     private bool isDeadPlayer = false;
     private List<GameObject> currentButtons = new List<GameObject>();
+
+    void Awake()
+    {
+        photonView = GetComponent<PhotonView>();
+        if (!photonView)
+        {
+            photonView = gameObject.AddComponent<PhotonView>();
+        }
+    }
 
     void Start()
     {
@@ -42,12 +53,6 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
         isDeadPlayer = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("DeadPlayer") &&
                       (int)PhotonNetwork.CurrentRoom.CustomProperties["DeadPlayer"] == PhotonNetwork.LocalPlayer.ActorNumber;
 
-        // Create unique instance of stats if this is the dead player
-        if (isDeadPlayer)
-        {
-            playerStats = Instantiate(playerStats);
-        }
-
         InitializeAvailablePowerUps();
         CreatePowerUpSelection();
     }
@@ -65,7 +70,7 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
         // Create buttons for all players to see
         var selectedPowerUps = new List<PowerUps.PowerUpType>();
 
-        // Only select powerups if this is the dead player (master client could do this instead)
+        // Only select powerups if this is the dead player
         if (isDeadPlayer)
         {
             for (int i = 0; i < Mathf.Min(powerUpsToShow, availablePowerUps.Count); i++)
@@ -74,16 +79,24 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
                 selectedPowerUps.Add(availablePowerUps[randomIndex]);
                 availablePowerUps.RemoveAt(randomIndex);
             }
-        }
-        else
-        {
-            // Show placeholder buttons for the alive player
-            for (int i = 0; i < powerUpsToShow; i++)
+
+            // Sync the selected power-ups across the network
+            if (PhotonNetwork.IsMasterClient)
             {
-                selectedPowerUps.Add(PowerUps.PowerUpType.RapidFire); // Default type, will be hidden
+                photonView.RPC("RPC_SyncSelectedPowerUps", RpcTarget.All, selectedPowerUps.Select(p => (int)p).ToArray());
             }
         }
 
+        foreach (var powerUpType in selectedPowerUps)
+        {
+            CreatePowerUpButton(powerUpType);
+        }
+    }
+
+    [PunRPC]
+    private void RPC_SyncSelectedPowerUps(int[] powerUpTypes)
+    {
+        var selectedPowerUps = powerUpTypes.Select(t => (PowerUps.PowerUpType)t).ToList();
         foreach (var powerUpType in selectedPowerUps)
         {
             CreatePowerUpButton(powerUpType);
@@ -107,8 +120,11 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
 
             confirmButton.onClick.AddListener(() =>
             {
-                powerUpsSystem.TogglePowerUp(powerUpType, playerStats);
-                photonView.RPC("RPC_ConfirmSelections", RpcTarget.All);
+                // Only apply power-up if we're the dead player
+                if (isDeadPlayer)
+                {
+                    photonView.RPC("RPC_ApplyPowerUp", RpcTarget.All, (int)powerUpType, PhotonNetwork.LocalPlayer.ActorNumber);
+                }
             });
         }
         else
@@ -121,13 +137,34 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void RPC_ConfirmSelections()
+    private void RPC_ApplyPowerUp(int powerUpType, int playerActorNumber)
     {
+        // Only apply the power-up if this is the player who died
+        if (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
+        {
+            PowerUps.PowerUpType type = (PowerUps.PowerUpType)powerUpType;
+            powerUpsSystem.TogglePowerUp(type, playerStats);
+            
+            // Store which player has this power-up
+            var powerUpData = new object[] { powerUpType, playerActorNumber };
+            var currentPowerUps = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("PlayerPowerUps") 
+                ? (object[])PhotonNetwork.CurrentRoom.CustomProperties["PlayerPowerUps"] 
+                : new object[0];
+                
+            var newPowerUps = currentPowerUps.Concat(new[] { powerUpData }).ToArray();
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "PlayerPowerUps", newPowerUps } });
+        }
+
         if (PhotonNetwork.IsMasterClient)
         {
-            PhotonNetwork.LoadLevel("Game");
+            StartCoroutine(LoadGameAfterDelay());
         }
-        gameObject.SetActive(false);
+    }
+
+    private IEnumerator LoadGameAfterDelay()
+    {
+        yield return new WaitForSeconds(1f);
+        PhotonNetwork.LoadLevel("Game");
     }
 
     public void ResetPowerUps()

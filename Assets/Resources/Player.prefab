@@ -512,6 +512,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
+  powerUpsSystem: {fileID: 0}
   FillImage: {fileID: 8436187448023187296}
   rb: {fileID: 8247838037740025147}
   bc: {fileID: 6041692237267312820}
@@ -538,7 +539,6 @@ MonoBehaviour:
   playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
   PhotonView: {fileID: 5620626765357561767}
   PlayerNameText: {fileID: 6500706691935208100}
-  PlayerCamera: {fileID: 3281368028406877455}
   rb: {fileID: 8247838037740025147}
   sr: {fileID: 6558259050748901196}
   isGrounded: 0
