@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Stats
   m_EditorClassIdentifier: 
   _bulletDamage: 10
-  _bulletSpeed: 5
-  _bulletSize: 1
+  _bulletSpeed: 10
+  _bulletSize: 0.4
   _bounceCount: 0
   _fireRate: 1
   _reloadTime: 2
   _maxAmmo: 5
   _health: 100
-  _speed: 5
-  _jumpHeight: 10
+  _speed: 6
+  _jumpHeight: 15
