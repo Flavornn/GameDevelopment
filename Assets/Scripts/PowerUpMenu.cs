@@ -139,18 +139,34 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RPC_ApplyPowerUp(int powerUpType, int playerActorNumber)
     {
+        // Null check for critical components
+        if (playerStats == null)
+        {
+            Debug.LogError("playerStats is not assigned!");
+            return;
+        }
+
         // Only apply the power-up if this is the player who died
         if (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
         {
             PowerUps.PowerUpType type = (PowerUps.PowerUpType)powerUpType;
-            powerUpsSystem.TogglePowerUp(type, playerStats);
-            
-            // Store which player has this power-up
+
+            // Ensure powerUpsSystem exists
+            if (powerUpsSystem != null)
+            {
+                powerUpsSystem.TogglePowerUp(type, playerStats);
+            }
+            else
+            {
+                Debug.LogError("powerUpsSystem reference is missing!");
+            }
+
+            // Update player's custom properties with the new power-up
             var powerUpData = new object[] { powerUpType, playerActorNumber };
-            var currentPowerUps = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("PlayerPowerUps") 
-                ? (object[])PhotonNetwork.CurrentRoom.CustomProperties["PlayerPowerUps"] 
+            var currentPowerUps = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("PlayerPowerUps")
+                ? (object[])PhotonNetwork.CurrentRoom.CustomProperties["PlayerPowerUps"]
                 : new object[0];
-                
+
             var newPowerUps = currentPowerUps.Concat(new[] { powerUpData }).ToArray();
             PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "PlayerPowerUps", newPowerUps } });
         }

@@ -85,11 +85,10 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        Vector3 spawnPos = new Vector3(
-            Random.Range(-2.5f, 2.5f),
-            spawnPositions.y,
-            spawnPositions.z
-        );
+        // Standardized spawn positions
+        Vector3 spawnPos = PhotonNetwork.IsMasterClient ?
+            new Vector3(-2.5f, spawnPositions.y, spawnPositions.z) :
+            new Vector3(2.5f, spawnPositions.y, spawnPositions.z);
 
         GameObject playerObj = PhotonNetwork.Instantiate(
             PlayerPrefab.name,
@@ -98,19 +97,10 @@ public class GameManager : MonoBehaviourPunCallbacks
             0
         );
 
-        if (playerObj != null)
+        if (playerObj != null && playerObj.GetComponent<PhotonView>().IsMine)
         {
-            PhotonView pv = playerObj.GetComponent<PhotonView>();
-            if (pv.IsMine)
-            {
-                LocalPlayer = playerObj;
-                Debug.Log("Spawned local player: " + LocalPlayer.name);
-
-                if (GameCanvas != null)
-                {
-                    GameCanvas.SetActive(false);
-                }
-            }
+            LocalPlayer = playerObj;
+            GameCanvas.SetActive(false);
         }
     }
 

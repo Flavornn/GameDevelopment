@@ -56,6 +56,8 @@ MonoBehaviour:
   - HandlePlayerDeathRPC
   - RPC_ApplyPowerUp
   - RPC_SyncSelectedPowerUps
+  - RPC_StorePowerUpSelection
+  - RPC_SyncPowerUpOptions
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

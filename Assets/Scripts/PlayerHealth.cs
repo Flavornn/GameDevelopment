@@ -19,14 +19,16 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
 
     private void Awake()
     {
+        playerStats = Instantiate(playerStats);
+
         if (playerStats != null)
         {
             currentHealth = playerStats._health;
             UpdateHealthUI();
             Debug.Log($"Player {photonView.ViewID} initialized with health: {currentHealth}");
 
-            // Load and apply any active power-ups from the room properties
-            if (PhotonNetwork.CurrentRoom != null && 
+            // Load and apply power-ups
+            if (PhotonNetwork.CurrentRoom != null &&
                 PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("PlayerPowerUps") &&
                 powerUpsSystem != null)
             {
@@ -36,7 +38,6 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
                     int powerUpType = (int)powerUpInfo[0];
                     int playerActorNumber = (int)powerUpInfo[1];
 
-                    // Only apply power-ups that belong to this player
                     if (playerActorNumber == PhotonNetwork.LocalPlayer.ActorNumber)
                     {
                         powerUpsSystem.TogglePowerUp((PowerUps.PowerUpType)powerUpType, playerStats);
@@ -46,8 +47,13 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         }
         else
         {
-            Debug.LogError("PlayerStats reference missing!");
+            Debug.LogError("PlayerStats reference is missing in PlayerHealth!");
         }
+    }
+
+    private void Update()
+    {
+        UpdateHealthUI();
     }
 
     [PunRPC]

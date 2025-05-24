@@ -33,7 +33,7 @@ public class PowerUps : ScriptableObject
     [Header("Active Power-Ups")]
     public List<PowerUpType> activePowerUps = new List<PowerUpType>();
 
-    private Dictionary<PowerUpType, Action<Stats>> powerUpEffects = new Dictionary<PowerUpType, Action<Stats>>
+    public static Dictionary<PowerUpType, Action<Stats>> powerUpEffects = new Dictionary<PowerUpType, Action<Stats>>
     {
         // Fire Rate Modifiers
         { PowerUpType.RapidFire, (stats) => {
