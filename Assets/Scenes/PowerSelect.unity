@@ -332,7 +332,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   powerUpsSystem: {fileID: 11400000, guid: 79718ccbe28416645a9af3e8c1ec0fdb, type: 2}
   playerStats: {fileID: 11400000, guid: df28cc4106ab1744780a8d9741885f98, type: 2}
-  powerUpPrefab: {fileID: 7018216405038213078, guid: 5ab94247d1cdb9e4cbc21b513d8c3480, type: 3}
+  powerUpPrefab: {fileID: 4479214910762605520, guid: b89534fc56e9768489f9471f44afa41f, type: 3}
   contentParent: {fileID: 398991225}
   powerUpsToShow: 3
 --- !u!225 &398991231
