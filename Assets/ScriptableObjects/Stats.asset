@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _bulletDamage: 10
   _bulletSpeed: 10
-  _bulletSize: 0.4
+  _bulletSize: 1
   _bounceCount: 0
   _fireRate: 1
   _reloadTime: 2

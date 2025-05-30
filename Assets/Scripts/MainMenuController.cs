@@ -38,8 +38,8 @@ public class MainMenuController : MonoBehaviourPunCallbacks
     private const string GAME_MODE = "DuelMode";
     private bool isQuickplay = false;
     private bool isCreatingRoom = false;
-    private string pendingRoomCode;
     private bool isJoiningRoom = false;
+    private string pendingRoomCode;
     private Coroutine countdownCoroutine;
 
     private void Awake()
@@ -68,7 +68,6 @@ public class MainMenuController : MonoBehaviourPunCallbacks
         PhotonNetwork.NickName = UsernameInput.text;
         UsernameMenu.SetActive(false);
         MainMenuPanel.SetActive(true);
-
         WelcomeText.text = $"Welcome {UsernameInput.text}!";
     }
 
@@ -78,11 +77,15 @@ public class MainMenuController : MonoBehaviourPunCallbacks
         MainMenuPanel.SetActive(false);
         WaitingPanel.SetActive(true);
         WaitingText.text = "Connecting...";
-        
+
         if (!PhotonNetwork.IsConnected)
+        {
             PhotonNetwork.ConnectUsingSettings();
+        }
         else
+        {
             StartMatchmaking();
+        }
     }
 
     public void CreateRoom()
@@ -103,10 +106,17 @@ public class MainMenuController : MonoBehaviourPunCallbacks
 
     private void CreateRoomInternal()
     {
-        MainMenuPanel.SetActive(false);
         string roomCode = Random.Range(10000, 100000).ToString();
-        RoomOptions options = new RoomOptions() { MaxPlayers = 2 };
+        var props = new ExitGames.Client.Photon.Hashtable { { "GameMode", GAME_MODE } };
+        RoomOptions options = new RoomOptions
+        {
+            MaxPlayers = 2,
+            CustomRoomProperties = props,
+            CustomRoomPropertiesForLobby = new string[] { "GameMode" }
+        };
+
         PhotonNetwork.CreateRoom(roomCode, options);
+        WaitingPanel.SetActive(false);
     }
 
     public void ShowJoinPanel()
@@ -156,26 +166,32 @@ public class MainMenuController : MonoBehaviourPunCallbacks
     {
         if (isQuickplay)
         {
+            isQuickplay = false;
             StartMatchmaking();
         }
         else if (isCreatingRoom)
         {
             isCreatingRoom = false;
-            WaitingPanel.SetActive(false);
             CreateRoomInternal();
         }
         else if (isJoiningRoom)
         {
             isJoiningRoom = false;
-            WaitingPanel.SetActive(false);
             AttemptRoomJoin(pendingRoomCode);
         }
     }
 
     private void StartMatchmaking()
     {
+        WaitingPanel.SetActive(true);
         WaitingText.text = "Searching for match...";
         PhotonNetwork.JoinRandomRoom(new ExitGames.Client.Photon.Hashtable { { "GameMode", GAME_MODE } }, 2);
+    }
+
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        // No available rooms -> create one
+        CreateRoomInternal();
     }
 
     public override void OnJoinRoomFailed(short returnCode, string message)
@@ -188,27 +204,24 @@ public class MainMenuController : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GameMode"))
+        WaitingPanel.SetActive(false);
+        LobbyPanel.SetActive(true);
+        RoomCodeText.text = PhotonNetwork.CurrentRoom.Name;
+        UpdatePlayerList();
+
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
-            WaitingText.text = $"Waiting... ({PhotonNetwork.CurrentRoom.PlayerCount}/2)";
-            if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
-                StartCoroutine(StartGame());
-        }
-        else
-        {
-            LobbyPanel.SetActive(true);
-            RoomCodeText.text = PhotonNetwork.CurrentRoom.Name;
-            UpdatePlayerList();
-            if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
-                countdownCoroutine = StartCoroutine(StartCountdown());
+            if (countdownCoroutine != null)
+                StopCoroutine(countdownCoroutine);
+            countdownCoroutine = StartCoroutine(StartCountdown());
         }
     }
 
     private void UpdatePlayerList()
     {
-        Photon.Realtime.Player[] players = PhotonNetwork.PlayerList;
-        Player1Text.text = players.Length >= 1 ? players[0].NickName : "...";
-        Player2Text.text = players.Length >= 2 ? players[1].NickName : "...";
+        var players = PhotonNetwork.PlayerList;
+        Player1Text.text = players.Length > 0 ? players[0].NickName : "...";
+        Player2Text.text = players.Length > 1 ? players[1].NickName : "...";
     }
 
     private IEnumerator StartCountdown()
@@ -230,9 +243,10 @@ public class MainMenuController : MonoBehaviourPunCallbacks
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
         UpdatePlayerList();
-        if (PhotonNetwork.CurrentRoom.PlayerCount == 2 && !PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("GameMode"))
+        if (PhotonNetwork.CurrentRoom.PlayerCount == 2)
         {
-            if (countdownCoroutine != null) StopCoroutine(countdownCoroutine);
+            if (countdownCoroutine != null)
+                StopCoroutine(countdownCoroutine);
             countdownCoroutine = StartCoroutine(StartCountdown());
         }
     }
@@ -242,26 +256,13 @@ public class MainMenuController : MonoBehaviourPunCallbacks
     public void OnBackButton()
     {
         if (PhotonNetwork.InRoom)
-        {
             PhotonNetwork.LeaveRoom();
-            if (countdownCoroutine != null)
-                StopCoroutine(countdownCoroutine);
-        }
 
         PhotonNetwork.Disconnect();
-        
         JoinRoomPanel.SetActive(false);
         LobbyPanel.SetActive(false);
         WaitingPanel.SetActive(false);
         MainMenuPanel.SetActive(true);
-    }
-
-    private IEnumerator StartGame()
-    {
-        WaitingText.text = "Starting game...";
-        yield return new WaitForSeconds(1.5f);
-        if (PhotonNetwork.IsMasterClient)
-            PhotonNetwork.LoadLevel("Game");
     }
 
     public void QuitGame() => Application.Quit();
