@@ -74,6 +74,11 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         }
     }
 
+    public float GetCurrentHealth()
+    {
+        return currentHealth;
+    }
+
     private void CheckHealth()
     {
         if (photonView.IsMine && currentHealth <= 0)

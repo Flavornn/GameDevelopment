@@ -25,6 +25,9 @@ public class GameManager : MonoBehaviourPunCallbacks
     private static GameManager _instance;
     public static GameManager Instance => _instance;
     public static int DeadPlayerActorNumber = -1;
+    private float roundTime = 120f;
+    private float roundTimer;
+    private bool roundActive = false;
 
     private void Awake()
     {
@@ -45,15 +48,45 @@ public class GameManager : MonoBehaviourPunCallbacks
         CheckInput();
 
         if (PingText != null)
-        {
             PingText.text = "Ping: " + PhotonNetwork.GetPing();
+
+        // Round Timer
+        if (roundActive)
+        {
+            roundTimer -= Time.deltaTime;
+
+            if (roundTimer <= 0f)
+            {
+                roundActive = false;
+                HandleTimeoutRound();
+            }
         }
     }
+
+    private void HandleTimeoutRound()
+    {
+        PlayerHealth[] players = FindObjectsOfType<PlayerHealth>();
+        if (players.Length < 2) return;
+
+        var p1 = players[0];
+        var p2 = players[1];
+
+        float h1 = p1.GetCurrentHealth();
+        float h2 = p2.GetCurrentHealth();
+
+        if (h1 == h2) return; // Tie: do nothing
+
+        PlayerHealth loser = h1 < h2 ? p1 : p2;
+        HandlePlayerDeath(loser.photonView.Owner.ActorNumber);
+    }
+
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (scene.name == "Game")
         {
+            roundTimer = roundTime;
+            roundActive = true;
             SpawnPlayer();
         }
         else if (scene.name == "PowerSelect")
@@ -61,6 +94,7 @@ public class GameManager : MonoBehaviourPunCallbacks
             Destroy(gameObject);
         }
     }
+
 
 
     public void CheckInput()
@@ -100,7 +134,7 @@ public class GameManager : MonoBehaviourPunCallbacks
         if (playerObj != null && playerObj.GetComponent<PhotonView>().IsMine)
         {
             LocalPlayer = playerObj;
-            GameCanvas.SetActive(false);
+            //GameCanvas.SetActive(false);
         }
     }
 
@@ -118,11 +152,39 @@ public class GameManager : MonoBehaviourPunCallbacks
     [PunRPC]
     private void HandlePlayerDeathRPC(int actorNumber)
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        // Award round win to surviving player
+        foreach (var p in PhotonNetwork.PlayerList)
         {
-            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "DeadPlayer", actorNumber } });
-            PhotonNetwork.LoadLevel("PowerSelect");
+            if (p.ActorNumber != actorNumber)
+            {
+                int currentWins = p.CustomProperties.ContainsKey("Wins") ? (int)p.CustomProperties["Wins"] : 0;
+                currentWins++;
+
+                ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
+            {
+                { "Wins", currentWins }
+            };
+                p.SetCustomProperties(props);
+
+                // Check for victory
+                if (currentWins >= 7)
+                {
+                    PhotonNetwork.LoadLevel("WinScene"); // You should create this
+                    return;
+                }
+            }
         }
+
+        // Move to Power Select scene
+        PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "DeadPlayer", actorNumber } });
+        PhotonNetwork.LoadLevel("PowerSelect");
+    }
+
+    public float GetRemainingTime()
+    {
+        return roundTimer;
     }
 
     public void HandlePlayerDeath(int actorNumber)

@@ -89,6 +89,12 @@ public class Shooting : MonoBehaviourPun
         }
     }
 
+    public int GetCurrentAmmo()
+    {
+        return currentAmmo;
+    }
+
+
     public void RefreshShootingStats()
     {
         CalculateTimeBetweenShots();
