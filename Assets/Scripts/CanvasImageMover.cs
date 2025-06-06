@@ -2,14 +2,28 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CanvasImageMover : MonoBehaviour
+public class BackgroundMover : MonoBehaviour
 {
-    [Header("Smoke Settings")]
+    [Header("Smoke Settings (Leftward)")]
     public RectTransform smoke1;
     public RectTransform smoke2;
     public float smokeSpeed = 50f;
 
+    [Header("Smoke Settings (Rightward)")]
+    public RectTransform smoke3;
+    public RectTransform smoke4;
+    public float reverseSmokeSpeed = 30f;
+
+    [Header("Cloud Settings (Leftward)")]
+    public RectTransform cloud1;
+    public RectTransform cloud2;
+    public float cloudSpeed = 20f;
+
+    private float canvasWidth = 1920f;
+
     private float smokeWidth;
+    private float reverseSmokeWidth;
+    private float cloudWidth;
 
     [Header("Spaceship Settings")]
     public GameObject spaceshipRightPrefab;
@@ -20,27 +34,43 @@ public class CanvasImageMover : MonoBehaviour
     public float spaceshipSpeed = 150f;
     public RectTransform spaceshipParent;
 
-    private float canvasWidth = 1920f;
-
     void Start()
     {
-        smokeWidth = smoke1.rect.width;
+        if (smoke1 != null) smokeWidth = smoke1.rect.width;
+        if (smoke3 != null) reverseSmokeWidth = smoke3.rect.width;
+        if (cloud1 != null) cloudWidth = cloud1.rect.width;
+
         StartCoroutine(SpawnSpaceships());
     }
 
     void Update()
     {
-        MoveSmoke(smoke1);
-        MoveSmoke(smoke2);
+        // Smoke scrolling left
+        MoveSeamless(smoke1, smokeSpeed, -1, smokeWidth);
+        MoveSeamless(smoke2, smokeSpeed, -1, smokeWidth);
+
+        // Smoke scrolling right
+        MoveSeamless(smoke3, reverseSmokeSpeed, 1, reverseSmokeWidth);
+        MoveSeamless(smoke4, reverseSmokeSpeed, 1, reverseSmokeWidth);
+
+        // Clouds scrolling left
+        MoveSeamless(cloud1, cloudSpeed, -1, cloudWidth);
+        MoveSeamless(cloud2, cloudSpeed, -1, cloudWidth);
     }
 
-    void MoveSmoke(RectTransform smoke)
+    void MoveSeamless(RectTransform element, float speed, int direction, float width)
     {
-        smoke.anchoredPosition += Vector2.left * smokeSpeed * Time.deltaTime;
+        if (element == null) return;
 
-        if (smoke.anchoredPosition.x <= -smokeWidth)
+        element.anchoredPosition += Vector2.right * direction * speed * Time.deltaTime;
+
+        if (direction < 0 && element.anchoredPosition.x <= -width)
         {
-            smoke.anchoredPosition += new Vector2(smokeWidth * 2f, 0);
+            element.anchoredPosition += new Vector2(width * 2f, 0);
+        }
+        else if (direction > 0 && element.anchoredPosition.x >= width)
+        {
+            element.anchoredPosition -= new Vector2(width * 2f, 0);
         }
     }
 
@@ -67,12 +97,11 @@ public class CanvasImageMover : MonoBehaviour
         }
     }
 
-
     IEnumerator MoveSpaceship(RectTransform ship, Vector2 direction)
     {
         while (true)
         {
-            ship.anchoredPosition += (Vector2)direction * spaceshipSpeed * Time.deltaTime;
+            ship.anchoredPosition += direction * spaceshipSpeed * Time.deltaTime;
 
             if (ship.anchoredPosition.x < -400f || ship.anchoredPosition.x > canvasWidth + 400f)
             {

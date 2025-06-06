@@ -57,10 +57,10 @@ public class PlayerUIUpdater : MonoBehaviour
                     player1NameText.text = nick;
 
                 if (player1HealthText != null)
-                    player1HealthText.text = $"{health}/{maxHealth}";
+                    player1HealthText.text = $"{health}";
 
                 if (player1AmmoText != null)
-                    player1AmmoText.text = $"{currentAmmo}/{maxAmmo}";
+                    player1AmmoText.text = $"{currentAmmo}";
             }
             else if (actor == 2)
             {
@@ -69,18 +69,19 @@ public class PlayerUIUpdater : MonoBehaviour
                     player2NameText.text = nick;
 
                 if (player2HealthText != null)
-                    player2HealthText.text = $"{health}/{maxHealth}";
+                    player2HealthText.text = $"{health}";
 
                 if (player2AmmoText != null)
-                    player2AmmoText.text = $"{currentAmmo}/{maxAmmo}";
+                    player2AmmoText.text = $"{currentAmmo}";
             }
         }
 
         if (roundTimerText != null && GameManager.Instance != null)
-    {
-        float t = Mathf.Max(0f, GameManager.Instance.GetRemainingTime());
-        roundTimerText.text = $"{t}";
-    }
+        {
+            float t = Mathf.Max(0f, GameManager.Instance.GetRemainingTime());
+            int seconds = Mathf.FloorToInt(t);
+            roundTimerText.text = $"{seconds}";
+        }
     }
     private int GetCurrentAmmo(Shooting shooting)
     {

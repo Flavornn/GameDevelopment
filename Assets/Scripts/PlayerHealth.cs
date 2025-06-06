@@ -10,12 +10,9 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
     private float currentHealth; // Local health value for each player instance
     public PowerUps powerUpsSystem; // Add reference to PowerUps ScriptableObject
 
-    public Image FillImage;
     public Rigidbody2D rb;
     public BoxCollider2D bc;
-    public SpriteRenderer sr;
     public Player plMove;
-    public GameObject PlayerCanvas;
 
     private void Awake()
     {
@@ -24,7 +21,6 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         if (playerStats != null)
         {
             currentHealth = playerStats._health;
-            UpdateHealthUI();
             Debug.Log($"Player {photonView.ViewID} initialized with health: {currentHealth}");
 
             // Load and apply power-ups
@@ -51,11 +47,6 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         }
     }
 
-    private void Update()
-    {
-        UpdateHealthUI();
-    }
-
     [PunRPC]
     public void ReduceHealth(int amount)
     {
@@ -79,13 +70,13 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         return currentHealth;
     }
 
-    private void CheckHealth()
-    {
-        if (photonView.IsMine && currentHealth <= 0)
-        {
-            GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
-        }
-    }
+    //private void CheckHealth()
+    //{
+    //    if (photonView.IsMine && currentHealth <= 0)
+    //    {
+    //        GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
+    //    }
+    //}
 
     public void EnableInput()
     {
@@ -97,15 +88,14 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         float previousHealth = currentHealth;
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStats._health);
-        UpdateHealthUI();
         Debug.Log($"Player {photonView.ViewID} health modified from {previousHealth} to {currentHealth}");
     }
 
-    private void UpdateHealthUI()
-    {
-        if (FillImage != null)
-        {
-            FillImage.fillAmount = currentHealth / playerStats._health;
-        }
-    }
+    //private void UpdateHealthUI()
+    //{
+    //    if (FillImage != null)
+    //    {
+    //        FillImage.fillAmount = currentHealth / playerStats._health;
+    //    }
+    //}
 }

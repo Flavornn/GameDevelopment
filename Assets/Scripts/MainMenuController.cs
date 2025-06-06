@@ -59,6 +59,8 @@ public class MainMenuController : MonoBehaviourPunCallbacks
         JoinCodeInput.characterLimit = 5;
         JoinCodeInput.contentType = TMP_InputField.ContentType.Alphanumeric;
         JoinCodeInput.onValueChanged.AddListener(ValidateRoomCode);
+        PhotonNetwork.SendRate = 30;             
+        PhotonNetwork.SerializationRate = 20;
     }
 
     public void ValidateUsername() => ConfirmButton.interactable = UsernameInput.text.Length >= 1;

@@ -6,21 +6,15 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
-    public int roundNumber = 1;
-    public Text roundText;
     public PlayerHealth player;
     public GameObject PlayerPrefab;
     public GameObject GameCanvas;
-    public Vector3 spawnPositions;
-    public Text PingText;
     private bool Off = false;
     public GameObject DisconnectUI;
 
     [HideInInspector] public GameObject LocalPlayer;
-    public Text RespawnTimerText;
-    public GameObject RespawnMenu;
-    private float TimerAmount = 5f;
-    private bool RunRespawnTimer = false;
+    public Transform SpawnPoint1;
+    public Transform SpawnPoint2;
 
     private static GameManager _instance;
     public static GameManager Instance => _instance;
@@ -46,9 +40,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     private void Update()
     {
         CheckInput();
-
-        if (PingText != null)
-            PingText.text = "Ping: " + PhotonNetwork.GetPing();
 
         // Round Timer
         if (roundActive)
@@ -119,22 +110,24 @@ public class GameManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        // Standardized spawn positions
-        Vector3 spawnPos = PhotonNetwork.IsMasterClient ?
-            new Vector3(-2.5f, spawnPositions.y, spawnPositions.z) :
-            new Vector3(2.5f, spawnPositions.y, spawnPositions.z);
+        Transform spawnPoint = PhotonNetwork.IsMasterClient ? SpawnPoint1 : SpawnPoint2;
+
+        if (spawnPoint == null)
+        {
+            Debug.LogError("Spawn point is not assigned!");
+            return;
+        }
 
         GameObject playerObj = PhotonNetwork.Instantiate(
             PlayerPrefab.name,
-            spawnPos,
-            Quaternion.identity,
+            spawnPoint.position,
+            spawnPoint.rotation,
             0
         );
 
         if (playerObj != null && playerObj.GetComponent<PhotonView>().IsMine)
         {
             LocalPlayer = playerObj;
-            //GameCanvas.SetActive(false);
         }
     }
 
