@@ -35,7 +35,7 @@ public class Player : MonoBehaviourPunCallbacks
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (photonView.IsMine && !DisableInput)
         {

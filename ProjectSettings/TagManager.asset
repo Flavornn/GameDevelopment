@@ -8,6 +8,7 @@ TagManager:
   - Dummy
   - GameCanvas
   - Ground
+  - OutOfBounds
   layers:
   - Default
   - TransparentFX

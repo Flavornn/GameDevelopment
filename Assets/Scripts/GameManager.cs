@@ -65,11 +65,21 @@ public class GameManager : MonoBehaviourPunCallbacks
         float h1 = p1.GetCurrentHealth();
         float h2 = p2.GetCurrentHealth();
 
-        if (h1 == h2) return; // Tie: do nothing
+        PlayerHealth loser;
 
-        PlayerHealth loser = h1 < h2 ? p1 : p2;
+        if (h1 == h2)
+        {
+            // Randomly pick one as the loser
+            loser = Random.value < 0.5f ? p1 : p2;
+        }
+        else
+        {
+            loser = h1 < h2 ? p1 : p2;
+        }
+
         HandlePlayerDeath(loser.photonView.Owner.ActorNumber);
     }
+
 
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

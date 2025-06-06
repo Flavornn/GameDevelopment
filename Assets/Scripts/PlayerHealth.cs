@@ -70,13 +70,13 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         return currentHealth;
     }
 
-    //private void CheckHealth()
-    //{
-    //    if (photonView.IsMine && currentHealth <= 0)
-    //    {
-    //        GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
-    //    }
-    //}
+    private void CheckHealth()
+    {
+        if (photonView.IsMine && currentHealth <= 0)
+        {
+            GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
+        }
+    }
 
     public void EnableInput()
     {
@@ -91,11 +91,13 @@ public class PlayerHealth : MonoBehaviourPunCallbacks
         Debug.Log($"Player {photonView.ViewID} health modified from {previousHealth} to {currentHealth}");
     }
 
-    //private void UpdateHealthUI()
-    //{
-    //    if (FillImage != null)
-    //    {
-    //        FillImage.fillAmount = currentHealth / playerStats._health;
-    //    }
-    //}
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!photonView.IsMine) return;
+
+        if (other.CompareTag("OutOfBounds"))
+        {
+            GameManager.Instance.HandlePlayerDeath(photonView.Owner.ActorNumber);
+        }
+    }
 }

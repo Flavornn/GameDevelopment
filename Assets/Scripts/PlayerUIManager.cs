@@ -32,6 +32,7 @@ public class PlayerUIUpdater : MonoBehaviour
         // Find all instantiated PlayerHealth components in the scene
         allPlayers = FindObjectsOfType<PlayerHealth>();
 
+        // Loop through both and check .photonView.IsMine
         foreach (PlayerHealth p in allPlayers)
         {
             if (p == null || p.photonView == null) continue;
@@ -42,9 +43,6 @@ public class PlayerUIUpdater : MonoBehaviour
 
             // Fetch current health and max health from PlayerHealth / Stats
             float health = p.GetCurrentHealth();
-            int maxHealth = p.playerStats._health;
-
-            // Fetch the Shooting component (to read currentAmmo + maxAmmo)
             Shooting shooting = p.GetComponent<Shooting>();
             int currentAmmo = (shooting != null) ? GetCurrentAmmo(shooting) : 0;
             int maxAmmo = (shooting != null) ? shooting.shootingStats._maxAmmo : 0;

@@ -94,6 +94,7 @@ public class Shooting : MonoBehaviourPun
         return currentAmmo;
     }
 
+    public int CurrentAmmo => currentAmmo;
 
     public void RefreshShootingStats()
     {

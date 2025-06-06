@@ -42,20 +42,33 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
 
     void InitializePowerUpMenu()
     {
-        // Clear existing buttons
-        foreach (var button in currentButtons)
-        {
-            if (button != null) Destroy(button);
-        }
+        // Clear any cached references
         currentButtons.Clear();
 
-        // Check if this is the dead player
+        // Get children of contentParent (assume 3)
+        for (int i = 0; i < contentParent.childCount; i++)
+        {
+            currentButtons.Add(contentParent.GetChild(i).gameObject);
+        }
+
         isDeadPlayer = PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("DeadPlayer") &&
-                      (int)PhotonNetwork.CurrentRoom.CustomProperties["DeadPlayer"] == PhotonNetwork.LocalPlayer.ActorNumber;
+                       (int)PhotonNetwork.CurrentRoom.CustomProperties["DeadPlayer"] == PhotonNetwork.LocalPlayer.ActorNumber;
 
         InitializeAvailablePowerUps();
-        CreatePowerUpSelection();
+
+        if (isDeadPlayer && PhotonNetwork.IsMasterClient)
+        {
+            var selected = new List<int>();
+            for (int i = 0; i < Mathf.Min(powerUpsToShow, availablePowerUps.Count); i++)
+            {
+                int randIndex = UnityEngine.Random.Range(0, availablePowerUps.Count);
+                selected.Add((int)availablePowerUps[randIndex]);
+                availablePowerUps.RemoveAt(randIndex);
+            }
+            photonView.RPC("RPC_SyncSelectedPowerUps", RpcTarget.All, selected.ToArray());
+        }
     }
+
 
     void InitializeAvailablePowerUps()
     {
@@ -96,12 +109,39 @@ public class PowerUpMenu : MonoBehaviourPunCallbacks
     [PunRPC]
     private void RPC_SyncSelectedPowerUps(int[] powerUpTypes)
     {
-        var selectedPowerUps = powerUpTypes.Select(t => (PowerUps.PowerUpType)t).ToList();
-        foreach (var powerUpType in selectedPowerUps)
+        for (int i = 0; i < currentButtons.Count && i < powerUpTypes.Length; i++)
         {
-            CreatePowerUpButton(powerUpType);
+            GameObject buttonObj = currentButtons[i];
+            PowerUps.PowerUpType type = (PowerUps.PowerUpType)powerUpTypes[i];
+
+            TextMeshProUGUI[] texts = buttonObj.GetComponentsInChildren<TextMeshProUGUI>();
+            Button button = buttonObj.GetComponentInChildren<Button>();
+
+            if (isDeadPlayer)
+            {
+                texts[0].text = SplitCamelCase(type.ToString());
+                texts[1].text = powerUpsSystem.GetPowerUpDescription(type);
+                button.interactable = true;
+
+                int cachedType = powerUpTypes[i]; // Prevent closure bug
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() =>
+                {
+                    if (isDeadPlayer)
+                    {
+                        photonView.RPC("RPC_ApplyPowerUp", RpcTarget.All, cachedType, PhotonNetwork.LocalPlayer.ActorNumber);
+                    }
+                });
+            }
+            else
+            {
+                texts[0].text = "Power Selection";
+                texts[1].text = "Waiting for opponent to choose...";
+                button.interactable = false;
+            }
         }
     }
+
 
     void CreatePowerUpButton(PowerUps.PowerUpType powerUpType)
     {
